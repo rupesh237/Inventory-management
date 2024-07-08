@@ -157,9 +157,6 @@ class PurchaseCreateView(View):
             # saves bill
             billobj = PurchaseBill(supplier=supplierobj)                        # a new object of class 'PurchaseBill' is created with supplier field set to 'supplierobj'
             billobj.save()                                                      # saves object into the db
-            # create bill details object
-            billdetailsobj = PurchaseBillDetails(billno=billobj)
-            billdetailsobj.save()
             for form in formset:                                                # for loop to save each individual form as its own object
                 # false saves the item and links bill to the item
                 billitem = form.save(commit=False)
@@ -173,6 +170,10 @@ class PurchaseCreateView(View):
                 # saves bill item and stock
                 stock.save()
                 billitem.save()
+            #create bill details object
+            billdetailsobj = PurchaseBillDetails(billno=billobj)
+            billdetailsobj.get_total_amount_with_taxes()
+            billdetailsobj.save()
             messages.success(request, "Purchased items have been registered successfully")
             return redirect('purchase-bill', billno=billobj.billno)
         formset = PurchaseItemFormset(request.GET or None)
@@ -234,9 +235,6 @@ class SaleCreateView(View):
             # saves bill
             billobj = form.save(commit=False)
             billobj.save()     
-            # create bill details object
-            billdetailsobj = SaleBillDetails(billno=billobj)
-            billdetailsobj.save()
             for form in formset:                                                # for loop to save each individual form as its own object
                 # false saves the item and links bill to the item
                 billitem = form.save(commit=False)
@@ -250,6 +248,10 @@ class SaleCreateView(View):
                 # saves bill item and stock
                 stock.save()
                 billitem.save()
+            # create bill details object
+            billdetailsobj = SaleBillDetails(billno=billobj)
+            billdetailsobj.get_total_amount_with_taxes()
+            billdetailsobj.save()
             messages.success(request, "Sold items have been registered successfully")
             return redirect('sale-bill', billno=billobj.billno)
         form = SaleForm(request.GET or None)

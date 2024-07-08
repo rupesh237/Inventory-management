@@ -1,4 +1,4 @@
-%%% M And MB Soft Tech %%%
+### M And MB Soft Tech ###
 
 **Instructions**
 - Install the Requirements: pip install -r requirements.txt

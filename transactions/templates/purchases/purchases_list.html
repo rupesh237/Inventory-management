@@ -35,7 +35,6 @@
 
         <tbody>         
             {% for purchase in bills %}
-            <tr>
                 <td class="align-middle"> <p>{{ purchase.billno }}</p> </td>
                 <td class=""> 
                     {% if purchase.supplier.is_deleted %}

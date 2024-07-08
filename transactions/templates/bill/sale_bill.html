@@ -11,7 +11,7 @@
 
     <!-- <br><br> -->
 
-    <form method="post">
+    <form action="{% url 'sale-bill' bill.billno %}" method="post">
     {% csrf_token %}
 
         <div class="bg">

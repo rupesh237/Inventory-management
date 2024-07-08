@@ -16,6 +16,17 @@
     </div>
 
     <br>
+    <div id="container" style="position: relative; height:45vh; border: 1.2mm ridge #4e6570; border-radius: 30px;" class="align-middle table-bordered">
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="purchase-graph"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="sales-graph"></canvas>
+            </div>
+        </div>
+    </div>
+    <br>
 
     <div class="row">
         <div class="col-md-6">
@@ -69,34 +80,130 @@
     </div>
 
     <!-- Loading Chart JS -->
-    <script src="{% static 'js/Chart.min.js' %}"></script>  
+    <script src="{% static 'js/Chart.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        Chart.defaults.global.defaultFontColor = '#3c3c3c';
-
-        //configuration for the bar graph
-        var barConfig = {
-            type: 'bar',
-            data: {
-                datasets: [{
-                    backgroundColor: '#1a79a5',
-                    label: 'Stock in Inventory',
-                    data: {{ data|safe }},
-                }],
-                labels: {{ labels|safe }}
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-            },
-        };
-
-
-        //runs all charts on loading the webpage
         window.onload = function() {
-            var ctx = document.getElementById('bar-graph').getContext('2d');
-            window.BarStock = new Chart(ctx, barConfig);
-        };
+            // Bar graph configuration
+            var barCtx = document.getElementById('bar-graph').getContext('2d');
+            var barConfig = {
+                type: 'bar',
+                data: {
+                    labels: {{ labels|safe }},
+                    datasets: [{
+                        label: 'Stock in Inventory',
+                        backgroundColor: '#1a79a5',
+                        data: {{ data|safe }}
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                }
+            };
+            window.BarStock = new Chart(barCtx, barConfig);
 
+            console.log('Purchase Data:', {{ purchase_data|safe }});
+            console.log('Sale Data:', {{ sale_data|safe }});
+                    
+            // Purchase chart configuration
+            const purchaseCtx = document.getElementById('purchase-graph').getContext('2d');
+            const purchaseData = {{ purchase_data|safe }};
+            const purchaseNames = purchaseData.map(item => item.name);
+            const purchasePrices = purchaseData.map(item => item.totalprice);
+            const purchaseQuantity = purchaseData.map(item => item.quantity);
+        
+            new Chart(purchaseCtx, {
+                type: 'bar',
+                data: {
+                    labels: purchaseNames,
+                    datasets: [{
+                        label: 'Last 6 months purchases',
+                        data: purchaseQuantity,
+                        backgroundColor: [
+                            "rgba(255, 99, 132, 0.2)",
+                            "rgba(54, 162, 235, 0.2)",
+                            "rgba(255, 206, 86, 0.2)",
+                            "rgba(75, 192, 192, 0.2)",
+                            "rgba(153, 102, 255, 0.2)",
+                            "rgba(255, 159, 64, 0.2)",
+                            "rgba(199, 199, 199, 0.2)",
+                            "rgba(83, 102, 255, 0.2)",
+                            "rgba(255, 195, 0, 0.2)",
+                            "rgba(0, 195, 255, 0.2)",
+                            "rgba(255, 87, 51, 0.2)",
+                            "rgba(120, 66, 210, 0.2)",
+                        ],
+                        borderColor: [
+                            "rgba(255, 99, 132, 1)",
+                            "rgba(54, 162, 235, 1)",
+                            "rgba(255, 206, 86, 1)",
+                            "rgba(75, 192, 192, 1)",
+                            "rgba(153, 102, 255, 1)",
+                            "rgba(255, 159, 64, 1)",
+                            "rgba(199, 199, 199, 1)",
+                            "rgba(83, 102, 255, 1)",
+                            "rgba(255, 195, 0, 1)",
+                            "rgba(0, 195, 255, 1)",
+                            "rgba(255, 87, 51, 1)",
+                            "rgba(120, 66, 210, 1)",
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Purchase per stock'
+                        }
+                    }
+                }
+            });
+        
+            // Sales doughnut chart configuration
+            const salesCtx = document.getElementById('sales-graph').getContext('2d');
+            const saleData = {{ sale_data|safe }};
+            const saleNames = saleData.map(item => item.name);
+            const salePrices = saleData.map(item => item.totalprice);
+            const saleQuantity = saleData.map(item => item.quantity);
+        
+            new Chart(salesCtx, {
+                type: 'bar',
+                data: {
+                    labels: saleNames,
+                    datasets: [{
+                        label: 'Last 6 months sales',
+                        data: saleQuantity,
+                        backgroundColor: [
+                            "rgba(255, 99, 132, 0.2)",
+                            "rgba(54, 162, 235, 0.2)",
+                            "rgba(255, 206, 86, 0.2)",
+                            "rgba(75, 192, 192, 0.2)",
+                            "rgba(153, 102, 255, 0.2)",
+                            "rgba(255, 159, 64, 0.2)",
+                        ],
+                        borderColor: [
+                            "rgba(255, 99, 132, 1)",
+                            "rgba(54, 162, 235, 1)",
+                            "rgba(255, 206, 86, 1)",
+                            "rgba(75, 192, 192, 1)",
+                            "rgba(153, 102, 255, 1)",
+                            "rgba(255, 159, 64, 1)",
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Sales per stock'
+                        }
+                    }
+                }
+            });
+        };        
     </script>
 
 {% endblock content %}

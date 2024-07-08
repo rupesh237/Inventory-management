@@ -21,9 +21,6 @@ class PurchaseBill(models.Model):
     time = models.DateTimeField(auto_now=True)
     supplier = models.ForeignKey(Supplier, on_delete = models.CASCADE, related_name='purchasesupplier')
 
-    def __str__(self):
-	    return "Bill no: " + str(self.billno)
-
     def get_items_list(self):
         return PurchaseItem.objects.filter(billno=self)
 
@@ -33,6 +30,9 @@ class PurchaseBill(models.Model):
         for item in purchaseitems:
             total += item.totalprice
         return total
+    
+    def __str__(self):
+	    return "Bill no: " + str(self.billno)
 
 #contains the purchase stocks made
 class PurchaseItem(models.Model):
@@ -54,12 +54,21 @@ class PurchaseBillDetails(models.Model):
     destination = models.CharField(max_length=50, blank=True, null=True)
     po = models.CharField(max_length=50, blank=True, null=True)
     
-    cgst = models.CharField(max_length=50, blank=True, null=True)
-    sgst = models.CharField(max_length=50, blank=True, null=True)
-    igst = models.CharField(max_length=50, blank=True, null=True)
-    cess = models.CharField(max_length=50, blank=True, null=True)
-    tcs = models.CharField(max_length=50, blank=True, null=True)
-    total = models.CharField(max_length=50, blank=True, null=True)
+    cgst = models.FloatField(default=0.0)
+    sgst = models.FloatField(default=0.0)
+    igst = models.FloatField(default=0.0)
+    cess = models.FloatField(default=0.0)
+    tcs = models.FloatField(default=0.0)
+    total = models.FloatField(default=0.0)
+
+    def get_total_amount_with_taxes(self):
+        total = float(self.billno.get_total_price())
+        self.cgst = 0.13 * total
+        self.sgst = 0.025 * total
+        self.igst = 0.05 * total
+        self.tcs = 0.01 * total
+        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs
+
 
     def __str__(self):
 	    return "Bill no: " + str(self.billno.billno)
@@ -75,10 +84,7 @@ class SaleBill(models.Model):
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=254)
     gstin = models.CharField(max_length=15)
-
-    def __str__(self):
-	    return "Bill no: " + str(self.billno)
-
+    
     def get_items_list(self):
         return SaleItem.objects.filter(billno=self)
         
@@ -88,6 +94,9 @@ class SaleBill(models.Model):
         for item in saleitems:
             total += item.totalprice
         return total
+    
+    def __str__(self):
+	    return "Bill no: " + str(self.billno)
 
 #contains the sale stocks made
 class SaleItem(models.Model):
@@ -109,12 +118,21 @@ class SaleBillDetails(models.Model):
     destination = models.CharField(max_length=50, blank=True, null=True)
     po = models.CharField(max_length=50, blank=True, null=True)
     
-    cgst = models.CharField(max_length=50, blank=True, null=True)
-    sgst = models.CharField(max_length=50, blank=True, null=True)
-    igst = models.CharField(max_length=50, blank=True, null=True)
-    cess = models.CharField(max_length=50, blank=True, null=True)
-    tcs = models.CharField(max_length=50, blank=True, null=True)
-    total = models.CharField(max_length=50, blank=True, null=True)
+    cgst = models.FloatField(default=0.0)
+    sgst = models.FloatField(default=0.0)
+    igst = models.FloatField(default=0.0)
+    cess = models.FloatField(default=0.0)
+    tcs = models.FloatField(default=0.0)
+    total = models.FloatField(default=0.0)
+
+    def get_total_amount_with_taxes(self):
+        total = float(self.billno.get_total_price())
+        self.cgst = 0.13 * total
+        self.sgst = 0.025 * total
+        self.igst = 0.05 * total
+        self.tcs = 0.01 * total
+        print(self.cgst)
+        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs
 
     def __str__(self):
 	    return "Bill no: " + str(self.billno.billno)

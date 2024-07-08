@@ -11,7 +11,7 @@
 
     <!-- <br><br> --><!-- Log on to codeastro.com for more projects -->
     
-    <form method="post">
+    <form action="{% url 'purchase-bill' bill.billno %}" method="post">
     {% csrf_token %}
 
         <div class="bg">
