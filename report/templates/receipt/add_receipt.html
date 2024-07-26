@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+
+{% block title %} {{title}}
+<style>
+    /* Initial CSS to hide the remarks field */
+    .remarks-field {
+        display: none;
+    }
+</style>
+ {% endblock title %}
+
+
+{% block content %}
+
+    <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
+    
+    <br><!-- Log on to codeastro.com for more projects -->
+    
+    <form method="post">
+    
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+            {{ form.paid_by.errors }}
+            <label for="{{ form.paid_by.id_for_label }}">Paid By:</label>
+            {{ form.paid_by }}
+        </div>
+        <div class="form-group">
+            {{ form.total.errors }}
+            <label for="{{ form.total.id_for_label }}">Total Amount:</label>
+            {{ form.total }}
+        </div>
+        <div class="form-group">
+            {{ form.type.errors }}
+            <label for="{{ form.type.id_for_label }}">Type:</label>
+            {{ form.type }}
+        </div>
+        <div class="form-group" id="remarks-field">
+            {{ form.remarks.errors }}
+            <label for="{{ form.remarks.id_for_label }}">Remarks:</label>
+            {{ form.remarks }}
+        </div>
+        <div class="form-group ">
+            {{ form.date.errors }}
+            <label for="{{ form.date.id_for_label }}">Date:</label>
+            {{ form.date }}
+        </div>
+        <br><!-- Log on to codeastro.com for more projects -->
+
+        <div class="align-middle">
+            <button type="submit" class="btn btn-success">{{ savebtn }}</button>
+            {% if title == "New Receipt" %}
+                <button type="reset" class="btn btn-danger" >Reset</button>
+            {% endif %}
+            {% if delbtn %}
+                <a href="{% url 'delete-receipt' object.pk %}" class="btn  btn-danger"> Delete Receipt </a>
+            {% endif %}
+            <a href="{% url 'receipt' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        
+    </form>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeField = document.getElementById('id_type');
+            const remarksField = document.getElementById('remarks-field');
+            
+            function toggleRemarksField() {
+                if (typeField.value === 'OT') {  // 'OT' corresponds to ReceiptTypeChoice.OTHER
+                    remarksField.style.display = 'block';
+                } else {
+                    remarksField.style.display = 'none';
+                }
+            }
+
+            // Initial check
+            toggleRemarksField();
+
+            // Add event listener to update remarks field visibility on type change
+            typeField.addEventListener('change', toggleRemarksField);
+        });
+    </script>
+
+{% endblock content %}

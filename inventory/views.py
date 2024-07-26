@@ -22,9 +22,14 @@ class StockListView(FilterView):
 class StockCreateView(SuccessMessageMixin, CreateView):                                 # createview class to add new stock, mixin used to display message
     model = Stock                                                                       # setting 'Stock' model as model
     form_class = StockForm                                                              # setting 'StockForm' form as form
-    template_name = "edit_stock.html"                                                   # 'edit_stock.html' used as the template
+    template_name = "add_stock.html"                                                   # 'edit_stock.html' used as the template
     success_url = '/inventory'                                                          # redirects to 'inventory' page in the url after submitting the form
     success_message = "Stock has been created successfully"                             # displays message when form is submitted
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)

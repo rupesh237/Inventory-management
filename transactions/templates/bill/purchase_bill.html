@@ -11,7 +11,7 @@
 
     <!-- <br><br> --><!-- Log on to codeastro.com for more projects -->
     
-    <form action="{% url 'purchase-bill' bill.billno %}" method="post">
+    <form action="{% url 'purchase-bill' bill.billno %}" method="post" onsubmit="return validateForm()">
     {% csrf_token %}
 
         <div class="bg">
@@ -110,7 +110,7 @@
                             <table class="outer-box inner-box" style="width: 800px; margin-left: auto; margin-right: auto;">
                                 <tbody>
                                     <tr>
-                                        <td class="inner-box" style="width: 35%; text-align: center;" rowspan="6">
+                                        <td class="inner-box" style="width: 35%; text-align: center;" rowspan="9">
                                             <p> <span style="font-weight: bold;">BANK DETAILS <br> M And MB Soft Tech</span> <br>
                                                 Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p>
                                         </td>
@@ -119,23 +119,35 @@
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 2.5%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="text" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;LOCAL TAX @ 5% </td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="text" name="igst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.igst %}{{ billdetails.igst }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="igst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.igst %}{{ billdetails.igst }}{% endif %}"></td>
                                     </tr>
                                     <tr><!-- Log on to codeastro.com for more projects -->
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;ANY OTHER CHARGES @  </td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="text" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cess %}{{ billdetails.cess }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cess %}{{ billdetails.cess }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;TCS @ 1%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="text" name="tcs" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tcs %}{{ billdetails.tcs }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="tcs" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tcs %}{{ billdetails.tcs }}{% endif %}"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;DISCOUNT @ {{billdetails.discount_percentage}}%</td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="discount_amount" id="discount_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.discount_amount %}{{ billdetails.discount_amount }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;TOTAL</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="text" name="total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.total %}{{ billdetails.total }}{% endif %}"> </td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="total" id="total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.total %}{{ billdetails.total }}{% endif %}"  oninput="updateDueAmount()"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;PAID</td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="paid_amount" id="paid_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.paid_amount %}{{ billdetails.paid_amount }}{% endif %}" oninput="updateDueAmount()"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;DUE</td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="due_amount" id="due_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.due_amount %}{{ billdetails.due_amount }}{% endif %}"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -174,13 +186,55 @@
     </form>
 
     <script>
+        function validateForm() {
+            let paidAmountInput = document.getElementById('paid_amount');
+            let dueAmountInput = document.getElementById('due_amount');
+    
+            if (paidAmountInput) {
+                let paid_amount = parseFloat(paidAmountInput.value) || 0;
+                if (isNaN(paid_amount)) {
+                    paid_amount = 0;
+                    paidAmountInput.value = paid_amount;
+                }
+            }
+    
+            if (dueAmountInput) {
+                let due_amount = parseFloat(dueAmountInput.value) || 0;
+                if (isNaN(due_amount)) {
+                    due_amount = 0;
+                    dueAmountInput.value = due_amount;
+                }
+            }
+    
+            return true; // Allow form submission to proceed
+        }     
+    
         function printpage(divName) {
             var printContents = document.getElementById(divName).innerHTML;
             var originalContents = document.body.innerHTML;
             document.body.innerHTML = printContents;
             window.print();
             document.body.innerHTML = originalContents;
-        }       
-        </script>
+        }
+    
+        function updateDueAmount() {
+            var total = parseFloat(document.getElementById('total').value) || 0;
+            var paid = parseFloat(document.getElementById('paid_amount').value) || 0;
+    
+            console.log("Total:", total);
+            console.log("Paid:", paid);
+    
+            var due = total - paid;
+            console.log("Due:", due);
+            document.getElementById('due_amount').value = due.toFixed(2);
+        }
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure all initial values are calculated
+            updateDueAmount();
+            validateForm();
+        });
+    </script>
+    
 
 {% endblock %}

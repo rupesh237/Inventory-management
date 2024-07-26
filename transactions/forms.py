@@ -28,8 +28,9 @@ class PurchaseItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['stock'].queryset = Stock.objects.filter(is_deleted=False)
         self.fields['stock'].widget.attrs.update({'class': 'textinput form-control setprice stock', 'required': 'true'})
-        self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '0', 'required': 'true'})
-        self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '0', 'required': 'true'})
+        self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '1', 'required': 'true'})
+        self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '1', 'required': 'true'})
+    
     class Meta:
         model = PurchaseItem
         fields = ['stock', 'quantity', 'perprice']
@@ -39,10 +40,15 @@ PurchaseItemFormset = formset_factory(PurchaseItemForm, extra=1)
 
 # form used to accept the other details for purchase bill
 class PurchaseDetailsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cess'].required = False
+        self.fields['discount_amount'].required = False
+
     class Meta:
         model = PurchaseBillDetails
-        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'total']
-
+        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'discount_amount', 'total', 'paid_amount', 'due_amount']
+    
 
 # form used for supplier
 class SupplierForm(forms.ModelForm):
@@ -51,7 +57,7 @@ class SupplierForm(forms.ModelForm):
         self.fields['name'].widget.attrs.update({'class': 'textinput form-control', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only'})
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
-        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '15', 'pattern' : '[A-Z0-9]{15}', 'title' : 'GSTIN Format Required'})
+        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})
     class Meta:
         model = Supplier
         fields = ['name', 'phone', 'address', 'email', 'gstin']
@@ -72,7 +78,7 @@ class SaleForm(forms.ModelForm):
         self.fields['name'].widget.attrs.update({'class': 'textinput form-control', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only', 'required': 'true'})
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only', 'required': 'true'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
-        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '15', 'pattern' : '[A-Z0-9]{15}', 'title' : 'GSTIN Format Required'})
+        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})
     class Meta:
         model = SaleBill
         fields = ['name', 'phone', 'address', 'email', 'gstin']
@@ -91,8 +97,9 @@ class SaleItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['stock'].queryset = Stock.objects.filter(is_deleted=False)
         self.fields['stock'].widget.attrs.update({'class': 'textinput form-control setprice stock', 'required': 'true'})
-        self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '0', 'required': 'true'})
-        self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '0', 'required': 'true'})
+        self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '1', 'required': 'true'})
+        self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '1', 'required': 'true'})
+
     class Meta:
         model = SaleItem
         fields = ['stock', 'quantity', 'perprice']
@@ -102,6 +109,11 @@ SaleItemFormset = formset_factory(SaleItemForm, extra=1)
 
 # form used to accept the other details for sales bill
 class SaleDetailsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cess'].required = False
+        self.fields['discount_amount'].required = False
+        
     class Meta:
         model = SaleBillDetails
-        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'total']
+        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'discount_amount', 'total', 'paid_amount', 'due_amount']

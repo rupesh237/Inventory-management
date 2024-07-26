@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+
+{% block title %} {{title}} {% endblock title %}
+
+
+{% block content %}
+
+    <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
+    
+    <br><!-- Log on to codeastro.com for more projects -->
+    
+    <form method="post">
+    
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.first_name.errors }}
+            <label for="{{ form.first_name.id_for_label }}">First Name:</label>
+            {{ form.first_name }}
+        </div> 
+        <div class="form-group">
+            {{ form.last_name.errors }}
+            <label for="{{ form.last_name.id_for_label }}">Last Name:</label>
+            {{ form.last_name }}
+        </div>
+        <div class="form-group">
+            {{ form.email.errors }}
+            <label for="{{ form.email.id_for_label }}">Email:</label>
+            {{ form.email }}
+        </div>
+        <div class="form-group">
+            {{ form.phone_number.errors }}
+            <label for="{{ form.phone_number.id_for_label }}">Phone Number:</label>
+            {{ form.phone_number }}
+        </div>
+        <div class="form-group ">
+            {{ form.address.errors }}
+            <label for="{{ form.address.id_for_label }}">Address:</label>
+            {{ form.address }}
+        </div>
+        <div class="form-group">
+            {{ form.date_of_birth.errors }}
+            <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth:</label>
+            {{ form.date_of_birth }}
+        </div>
+        <div class="form-group">
+            {{ form.date_of_joining.errors }}
+            <label for="{{ form.date_of_joining.id_for_label }}">Date of joining:</label>
+            {{ form.date_of_joining }}
+        </div>
+        <div class="form-group">
+            {{ form.position.errors }}
+            <label for="{{ form.position.id_for_label }}">Position:</label>
+            {{ form.position }}
+        </div>
+        <div class="form-group">
+            {{ form.salary.errors }}
+            <label for="{{ form.salary.id_for_label }}">Salary:</label>
+            {{ form.salary }}
+        </div>
+
+        <br><!-- Log on to codeastro.com for more projects -->
+
+        <div class="align-middle">
+            <button type="submit" class="btn btn-success">{{ savebtn }}</button>
+            {% if title == "New Employee" %}
+                <button type="reset" class="btn btn-danger" >Reset</button>
+            {% endif %}
+            {% if delbtn %}
+                <a href="{% url 'delete-employee' object.pk %}" class="btn  btn-danger"> Delete Employee </a>
+            {% endif %}
+            <a href="{% url 'employee' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        
+    </form><!-- Log on to codeastro.com for more projects -->
+
+{% endblock content %}

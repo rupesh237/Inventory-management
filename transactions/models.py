@@ -1,5 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
 from inventory.models import Stock
+
+from django.apps import apps
 
 #contains suppliers
 class Supplier(models.Model):
@@ -8,7 +11,7 @@ class Supplier(models.Model):
     phone = models.CharField(max_length=12, unique=True)
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=254, unique=True)
-    gstin = models.CharField(max_length=15, unique=True)
+    gstin = models.CharField(max_length=9, unique=True)
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -20,6 +23,7 @@ class PurchaseBill(models.Model):
     billno = models.AutoField(primary_key=True)
     time = models.DateTimeField(auto_now=True)
     supplier = models.ForeignKey(Supplier, on_delete = models.CASCADE, related_name='purchasesupplier')
+    prepared_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     def get_items_list(self):
         return PurchaseItem.objects.filter(billno=self)
@@ -57,17 +61,53 @@ class PurchaseBillDetails(models.Model):
     cgst = models.FloatField(default=0.0)
     sgst = models.FloatField(default=0.0)
     igst = models.FloatField(default=0.0)
-    cess = models.FloatField(default=0.0)
+    cess = models.FloatField(default=0.0, null=True)
     tcs = models.FloatField(default=0.0)
+    
+    discount_percentage = models.SmallIntegerField(null=True, default=0)
+    discount_amount = models.FloatField(default=0.0, null=True)
     total = models.FloatField(default=0.0)
+    paid_amount = models.FloatField(default=0.0)
+    due_amount = models.FloatField(default=0.0)
 
     def get_total_amount_with_taxes(self):
         total = float(self.billno.get_total_price())
+        if not self.discount_amount:
+            self.discount_amount = (float(self.discount_percentage) * total)/100
         self.cgst = 0.13 * total
         self.sgst = 0.025 * total
         self.igst = 0.05 * total
         self.tcs = 0.01 * total
-        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs
+        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs - self.discount_amount
+
+    def make_payment_report(self):
+        Payment = apps.get_model('report', 'Payment')
+        payment, created = Payment.objects.get_or_create(
+            purchasebill=self,
+            defaults={
+                'type': "PURCHASE",
+                'paid_to': self.billno.supplier.name,
+                'prepared_by': self.billno.prepared_by,
+                'total': self.total,
+                'date': self.billno.time,
+            }
+        )
+        if not created:
+            # If a Payment report already exists, update the necessary fields
+            payment.type = "PURCHASE"
+            payment.paid_to = self.billno.supplier.name
+            payment.prepared_by = self.billno.prepared_by
+            payment.total = self.total
+            payment.date = self.billno.time
+            payment.save()
+        
+    def save(self, *args, **kwargs):
+        # Ensure the related SaleBill is saved first
+        if not self.billno_id:
+            raise ValueError("Cannot save PurcahseBillDetails without a saved PurchaseBill instance.")
+        
+        super().save(*args, **kwargs)
+        self.make_payment_report()
 
 
     def __str__(self):
@@ -78,12 +118,13 @@ class PurchaseBillDetails(models.Model):
 class SaleBill(models.Model):
     billno = models.AutoField(primary_key=True)
     time = models.DateTimeField(auto_now=True)
+    prepared_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     name = models.CharField(max_length=150)
     phone = models.CharField(max_length=12)
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=254)
-    gstin = models.CharField(max_length=15)
+    gstin = models.CharField(max_length=9)
     
     def get_items_list(self):
         return SaleItem.objects.filter(billno=self)
@@ -121,18 +162,53 @@ class SaleBillDetails(models.Model):
     cgst = models.FloatField(default=0.0)
     sgst = models.FloatField(default=0.0)
     igst = models.FloatField(default=0.0)
-    cess = models.FloatField(default=0.0)
+    cess = models.FloatField(default=0.0, null=True)
     tcs = models.FloatField(default=0.0)
+
+    discount_percentage = models.SmallIntegerField(null=True, default=0)
+    discount_amount = models.FloatField(default=0.0, null=True)
     total = models.FloatField(default=0.0)
+    paid_amount = models.FloatField(default=0.0)
+    due_amount = models.FloatField(default=0.0)
 
     def get_total_amount_with_taxes(self):
         total = float(self.billno.get_total_price())
+        if not self.discount_amount:
+            self.discount_amount = (float(self.discount_percentage) * total)/100
         self.cgst = 0.13 * total
         self.sgst = 0.025 * total
         self.igst = 0.05 * total
         self.tcs = 0.01 * total
-        print(self.cgst)
-        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs
+        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs - self.discount_amount
+
+    def make_receipt_report(self):
+        Receipt = apps.get_model('report', 'Receipt')
+        receipt, created = Receipt.objects.get_or_create(
+            salebill=self,
+            defaults={
+                'type': "SALE",
+                'paid_by': self.billno.name,
+                'prepared_by': self.billno.prepared_by,
+                'total': self.total,
+                'date': self.billno.time,
+            }
+        )
+        if not created:
+            # If a Payment report already exists, update the necessary fields
+            receipt.type = "SALE"
+            receipt.paid_by = self.billno.name
+            receipt.prepared_by = self.billno.prepared_by
+            receipt.total = self.total
+            receipt.date = self.billno.time
+            receipt.save()
+
+    def save(self, *args, **kwargs):
+        # Ensure the related SaleBill is saved first
+        if not self.billno_id:
+            raise ValueError("Cannot save SaleBillDetails without a saved SaleBill instance.")
+        
+        super().save(*args, **kwargs)
+        self.make_receipt_report()
 
     def __str__(self):
 	    return "Bill no: " + str(self.billno.billno)

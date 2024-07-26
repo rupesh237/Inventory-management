@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+
+{% block title %} {{title}} {% endblock title %}
+
+
+{% block content %}
+
+    <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
+    
+    <br><!-- Log on to codeastro.com for more projects -->
+    
+    <form method="post">
+    
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.employee.errors }}
+            <label for="{{ form.employee.id_for_label }}">Employee:</label>
+            {{ form.employee }}
+        </div> 
+        <div class="form-group">
+            {{ form.period_start.errors }}
+            <label for="{{ form.period_start.id_for_label }}">Period Start:</label>
+            {{ form.period_start }}
+        </div>
+        <div class="form-group">
+            {{ form.period_end.errors }}
+            <label for="{{ form.period_end.id_for_label }}">Period End:</label>
+            {{ form.period_end }}
+        </div>
+        <div class="form-group">
+            {{ form.basic_salary.errors }}
+            <label for="{{ form.basic_salary.id_for_label }}">Basic Salary:</label>
+            {{ form.basic_salary }}
+        </div>
+        <div class="form-group ">
+            {{ form.allowances.errors }}
+            <label for="{{ form.allowances.id_for_label }}">Allowance:</label>
+            {{ form.allowances }}
+        </div>
+        <div class="form-group">
+            {{ form.bonuses.errors }}
+            <label for="{{ form.bonuses.id_for_label }}">Bonus:</label>
+            {{ form.bonuses }}
+        </div>
+        <div class="form-group">
+            {{ form.deductions.errors }}
+            <label for="{{ form.deductions.id_for_label }}">Deduction:</label>
+            {{ form.deductions }}
+        </div>
+        <div class="form-group">
+            {{ form.paid_date.errors }}
+            <label for="{{ form.paid_date.id_for_label }}">Paid Date:</label>
+            {{ form.paid_date }}
+        </div>
+        <br><!-- Log on to codeastro.com for more projects -->
+
+        <div class="align-middle">
+            <button type="submit" class="btn btn-success">{{ savebtn }}</button>
+            {% if title == "New Payroll" %}
+                <button type="reset" class="btn btn-danger" >Reset</button>
+            {% endif %}
+            {% if delbtn %}
+                <a href="#" class="btn  btn-danger"> Delete Employee </a>
+            {% endif %}
+            <a href="{% url 'payroll' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        
+    </form>
+
+{% endblock content %}

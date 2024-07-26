@@ -28,6 +28,8 @@ from .forms import (
     SaleDetailsForm
 )
 from inventory.models import Stock
+from datetime import datetime
+from django.utils import timezone
 
 
 
@@ -142,20 +144,35 @@ class PurchaseCreateView(View):
     template_name = 'purchases/new_purchase.html'
 
     def get(self, request, pk):
-        formset = PurchaseItemFormset(request.GET or None)                      # renders an empty formset
-        supplierobj = get_object_or_404(Supplier, pk=pk)                        # gets the supplier object
+        formset = PurchaseItemFormset(request.GET or None)              # renders an empty formset
+        supplierobj = get_object_or_404(Supplier, pk=pk)  # gets the supplier object
+        current_date = datetime.date(datetime.now())                  
         context = {
             'formset'   : formset,
             'supplier'  : supplierobj,
+            'current_date' : current_date,
         }                                                                       # sends the supplier and formset as context
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
         formset = PurchaseItemFormset(request.POST)                             # recieves a post method for the formset
-        supplierobj = get_object_or_404(Supplier, pk=pk)                        # gets the supplier object
+        supplierobj = get_object_or_404(Supplier, pk=pk)                     # gets the supplier object
         if formset.is_valid():
             # saves bill
-            billobj = PurchaseBill(supplier=supplierobj)                        # a new object of class 'PurchaseBill' is created with supplier field set to 'supplierobj'
+            bill_no = request.POST['purchase-bill']
+            purchase_discount = request.POST['purchase-discount']
+            purchase_date = request.POST['purchase-date']
+
+            if purchase_date:
+               if bill_no:
+                   billobj = PurchaseBill(supplier=supplierobj, billno=bill_no, time=purchase_date, prepared_by=request.user) 
+               else:
+                   billobj = PurchaseBill(supplier=supplierobj, time=purchase_date, prepared_by=request.user) 
+            else: 
+                if bill_no:
+                   billobj = PurchaseBill(supplier=supplierobj, billno=bill_no, prepared_by=request.user)  
+                else:
+                   billobj = PurchaseBill(supplier=supplierobj, prepared_by=request.user)  
             billobj.save()                                                      # saves object into the db
             for form in formset:                                                # for loop to save each individual form as its own object
                 # false saves the item and links bill to the item
@@ -171,7 +188,7 @@ class PurchaseCreateView(View):
                 stock.save()
                 billitem.save()
             #create bill details object
-            billdetailsobj = PurchaseBillDetails(billno=billobj)
+            billdetailsobj = PurchaseBillDetails(billno=billobj, discount_percentage=purchase_discount)
             billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Purchased items have been registered successfully")
@@ -232,10 +249,12 @@ class SaleCreateView(View):
         form = SaleForm(request.POST)
         formset = SaleItemFormset(request.POST)                                 # recieves a post method for the formset
         if form.is_valid() and formset.is_valid():
+            sale_discount = request.POST['sale-discount']
             # saves bill
             billobj = form.save(commit=False)
+            billobj.prepared_by = request.user
             billobj.save()     
-            for form in formset:                                                # for loop to save each individual form as its own object
+            for form in formset:                                          # for loop to save each individual form as its own object
                 # false saves the item and links bill to the item
                 billitem = form.save(commit=False)
                 billitem.billno = billobj                                       # links the bill object to the items
@@ -249,7 +268,7 @@ class SaleCreateView(View):
                 stock.save()
                 billitem.save()
             # create bill details object
-            billdetailsobj = SaleBillDetails(billno=billobj)
+            billdetailsobj = SaleBillDetails(billno=billobj, discount_percentage=sale_discount)
             billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Sold items have been registered successfully")
@@ -301,21 +320,36 @@ class PurchaseBillView(View):
     def post(self, request, billno):
         form = PurchaseDetailsForm(request.POST)
         if form.is_valid():
-            billdetailsobj = PurchaseBillDetails.objects.get(billno=billno)
-            
-            billdetailsobj.eway = request.POST.get("eway")    
-            billdetailsobj.veh = request.POST.get("veh")
-            billdetailsobj.destination = request.POST.get("destination")
-            billdetailsobj.po = request.POST.get("po")
-            billdetailsobj.cgst = request.POST.get("cgst")
-            billdetailsobj.sgst = request.POST.get("sgst")
-            billdetailsobj.igst = request.POST.get("igst")
-            billdetailsobj.cess = request.POST.get("cess")
-            billdetailsobj.tcs = request.POST.get("tcs")
-            billdetailsobj.total = request.POST.get("total")
+            billdetailsobj, created = PurchaseBillDetails.objects.get_or_create(billno=billno)
 
+            # Update billdetailsobj with form data
+            billdetailsobj.eway = form.cleaned_data.get('eway')
+            billdetailsobj.veh = form.cleaned_data.get('veh')
+            billdetailsobj.destination = form.cleaned_data.get('destination')
+            billdetailsobj.po = form.cleaned_data.get('po')
+            billdetailsobj.cgst = form.cleaned_data.get('cgst')
+            billdetailsobj.sgst = form.cleaned_data.get('sgst')
+            billdetailsobj.igst = form.cleaned_data.get('igst')
+            billdetailsobj.cess = form.cleaned_data.get('cess', 0)  # Handle default value if cess is not provided
+            billdetailsobj.tcs = form.cleaned_data.get('tcs')
+            billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
+            billdetailsobj.total = form.cleaned_data.get('total')
+            billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
+            billdetailsobj.due_amount = form.cleaned_data.get('due_amount', 0)
+
+            print(billdetailsobj.cess)
+            if billdetailsobj.cess is not None:
+               billdetailsobj.get_total_amount_with_taxes()
+            if billdetailsobj.discount_amount is not None:
+               if billdetailsobj.cess is None:
+                   billdetailsobj.cess = 0.0
+               billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Bill details have been modified successfully")
+        else:
+             # Print form errors to debug
+            print(form.errors)
+            messages.error(request, "Form is not valid")
         context = {
             'bill'          : PurchaseBill.objects.get(billno=billno),
             'items'         : PurchaseItem.objects.filter(billno=billno),
@@ -345,19 +379,34 @@ class SaleBillView(View):
         if form.is_valid():
             billdetailsobj = SaleBillDetails.objects.get(billno=billno)
             
-            billdetailsobj.eway = request.POST.get("eway")    
-            billdetailsobj.veh = request.POST.get("veh")
-            billdetailsobj.destination = request.POST.get("destination")
-            billdetailsobj.po = request.POST.get("po")
-            billdetailsobj.cgst = request.POST.get("cgst")
-            billdetailsobj.sgst = request.POST.get("sgst")
-            billdetailsobj.igst = request.POST.get("igst")
-            billdetailsobj.cess = request.POST.get("cess")
-            billdetailsobj.tcs = request.POST.get("tcs")
-            billdetailsobj.total = request.POST.get("total")
+           # Update billdetailsobj with form data
+            billdetailsobj.eway = form.cleaned_data.get('eway')
+            billdetailsobj.veh = form.cleaned_data.get('veh')
+            billdetailsobj.destination = form.cleaned_data.get('destination')
+            billdetailsobj.po = form.cleaned_data.get('po')
+            billdetailsobj.cgst = form.cleaned_data.get('cgst')
+            billdetailsobj.sgst = form.cleaned_data.get('sgst')
+            billdetailsobj.igst = form.cleaned_data.get('igst')
+            billdetailsobj.cess = form.cleaned_data.get('cess', 0)  # Handle default value if cess is not provided
+            billdetailsobj.tcs = form.cleaned_data.get('tcs')
+            billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
+            billdetailsobj.total = form.cleaned_data.get('total')
+            billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
+            billdetailsobj.due_amount = form.cleaned_data.get('due_amount', 0)
 
+            print(billdetailsobj.cess)
+            if billdetailsobj.cess is not None:
+               billdetailsobj.get_total_amount_with_taxes()  # Ensure this method calculates correctly
+            if billdetailsobj.discount_amount is not None:
+               if billdetailsobj.cess is None:
+                   billdetailsobj.cess = 0.0
+               billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Bill details have been modified successfully")
+        else:
+             # Print form errors to debug
+            print(form.errors)
+            messages.error(request, "Form is not valid")
         context = {
             'bill'          : SaleBill.objects.get(billno=billno),
             'items'         : SaleItem.objects.filter(billno=billno),

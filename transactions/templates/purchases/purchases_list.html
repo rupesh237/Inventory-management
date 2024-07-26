@@ -25,9 +25,10 @@
                 <th width="15%">Supplier</th>
                 <th width="15%">Stocks Purchased</th>
                 <th width="10%">Quantity Purchased</th>
-                <th width="15%">Total Purchased Price</th>
+                <th width="10%">Total Purchased Price</th>
                 <th width="10%">Purchased Date</th>
-                <th width="25%">Actions</th>
+                <th width="15%">Prepared By</th>
+                <th width="20%">Actions</th>
             </tr>
         </thead>
 
@@ -48,7 +49,11 @@
                 <td class="align-middle">{% for item in purchase.get_items_list %} {{ item.quantity }} <br> {% endfor %}</td>     
                 <td class="align-middle">${{ purchase.get_total_price }}</td>
                 <td class="align-middle">{{ purchase.time.date }}</td>
-                <td class="align-middle"> <a href="{% url 'purchase-bill' purchase.billno %}" class="btn btn-secondary btn-sm">View Bill</a> <a href="{% url 'delete-purchase' purchase.pk %}" class="btn btn-danger btn-sm">Delete Bill</a> </td>
+                <td class="align-middle">{{ purchase.prepared_by }}</td>
+                <td class="align-middle"> <a href="{% url 'purchase-bill' purchase.billno %}" class="btn btn-secondary btn-sm">View Bill</a> 
+                {% if user.is_staff %}
+                <a href="{% url 'delete-purchase' purchase.pk %}" class="btn btn-danger btn-sm">Delete Bill</a> </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

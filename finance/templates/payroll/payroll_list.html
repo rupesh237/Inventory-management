@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% load widget_tweaks %}
+
+
+{% block title %} Payroll {% endblock title %}
+
+
+{% block content %}
+    <!-- Log on to codeastro.com for more projects -->
+    <div class="row" style="color: #4e4e4e; font-style: bold; font-size: 3rem; ">
+        <div class="col-md-8">Payroll List</div>
+        <div class="col-md-4">               
+            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-payroll' %}">Add New Payroll</a> </div>
+        </div>
+    </div>
+    
+    <div style="border-bottom: 1px solid white;"></div>
+    
+    <br>
+
+    <table class="table table-css table-bordered table-hover">
+
+	<!-- Log on to codeastro.com for more projects -->
+    <form method="get">
+        <div class="input-group search">
+            <input type="date" id="paid_date" name="{{ filter.form.paid_date.name }}" class="form-control dateinput" placeholder="Search by date">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-pink">Search</button>
+            </div>
+        </div>
+    </form>
+
+        <br>
+        
+        <thead class="thead-dark align-middle">
+            <tr>
+                <th width="30%">Employee Name</th>
+                <th>Period Start</th>
+                <th>Period End</th>
+                <th>Net Salary</th>
+                <th>Paid Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+                  
+{% if object_list %}
+
+        <tbody>     <!-- Log on to codeastro.com for more projects -->    
+            {% for payroll in object_list %}
+                <tr>
+                    <td class="align-middle">
+                        <p>{{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</p>
+                    </td>
+                    <td class="align-middle">{{ payroll.period_start }}</td>
+                    <td class="align-middle">{{ payroll.period_end }}</td>
+                    <td class="align-middle">{{ payroll.net_salary }}</td>
+                    <td class="align-middle">{{ payroll.paid_date }}</td>
+                    <td class="align-middle">
+                        <a href="{% url 'edit-payroll' payroll.pk %}" class="btn btn-info btn-sm">Edit Details</a>
+                        {% if user.is_staff %}
+                        <a href="{% url 'delete-payroll' payroll.pk %}" class="btn btn-danger btn-sm"> Delete Payroll </a>
+                        {% endif %}
+                    </td>          
+                </tr>
+            {% endfor %}                   
+        </tbody>
+
+    </table>  
+
+    <div class="align-middle">
+        {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+                <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}<!-- Log on to codeastro.com for more projects -->
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            {% endif %}
+
+        {% endif %}
+    </div>
+
+{% else %}
+
+        <tbody></tbody>   
+    </table><!-- Log on to codeastro.com for more projects -->
+
+    <br><br><br><br><br><br><br><br>
+    <div style="color: #575757; font-style: bold; font-size: 1.5rem; text-align: center;">The records are empty. Please try adding some.</div>
+
+{% endif %}
+
+{% endblock content %}

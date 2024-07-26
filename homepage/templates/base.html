@@ -78,6 +78,21 @@
                     </ul>
                 </li>
                 <li>
+                    <a href="#financeSubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="fas fa-coins"></i> Finance</a>
+                    <ul class="collapse list-unstyled" id="financeSubmenu">
+                        <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'employee' %}"><i class="fas fa-users"></i> Employee</a> </li>
+                        <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'payroll' %}"><i class="fas fa-money-bill"></i> Payroll</a> </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#reportSubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="fas fa-book"></i> Report</a>
+                    <ul class="collapse list-unstyled" id="reportSubmenu">
+                        <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'payment' %}"><i class="fas fa-money-bill"></i> Payment</a> </li>
+                        <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'receipt' %}"><i class="fas fa-file-invoice"></i> Receipt</a> </li>
+                        <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="#"><i class="fas fa-user-tie"></i> Supplier</a> </li>
+                    </ul>
+                </li>
+                <li>
                     <a class="sidebar-text sidebar-button" href="{% url 'about' %}"><i class="fas fa-info-circle"></i> About</a>
                 </li><!-- Log on to codeastro.com for more projects -->
 
