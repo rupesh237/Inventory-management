@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+
+{% block title %} {{title}}
+ {% endblock title %}
+
+
+{% block content %}
+<style>
+    /* Initial CSS to hide the remarks field */
+    .remarks-field {
+        display: none;
+    }
+</style>
+
+    <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
+    
+    <br><!-- Log on to codeastro.com for more projects -->
+    
+    <form method="post">
+    
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.paid_to.errors }}
+            <label for="{{ form.paid_to.id_for_label }}">Paid To:</label>
+            {{ form.paid_to }}
+        </div>
+        <div class="form-group">
+            {{ form.type.errors }}
+            <label for="{{ form.type.id_for_label }}">Type:</label>
+            {{ form.type }}
+        </div>
+        <div class="form-group" id="remarks-field">
+            {{ form.remarks.errors }}
+            <label for="{{ form.remarks.id_for_label }}">Remarks:</label>
+            {{ form.remarks }}
+        </div>
+        <div class="form-group">
+            {{ form.total.errors }}
+            <label for="{{ form.total.id_for_label }}">Total Amount:</label>
+            {{ form.total }}
+        </div>
+        <div class="form-group">
+            {{ form.paid_amount.errors }}
+            <label for="{{ form.paid_amount.id_for_label }}">Paid Amount:</label>
+            {{ form.paid_amount }}
+        </div>
+        <div class="form-group">
+            {{ form.due_amount.errors }}
+            <label for="{{ form.due_amount.id_for_label }}">Due Amount:</label>
+            {{ form.due_amount }}
+        </div>
+        <div class="form-group ">
+            {{ form.date.errors }}
+            <label for="{{ form.date.id_for_label }}">Date:</label>
+            {{ form.date }}
+        </div>
+        <br><!-- Log on to codeastro.com for more projects -->
+
+        <div class="align-middle">
+            <button type="submit" class="btn btn-success">{{ savebtn }}</button>
+            {% if title == "New Payment" %}
+                <button type="reset" class="btn btn-danger" >Reset</button>
+            {% endif %}
+            {% if delbtn %}
+                <a href="{% url 'delete-payment' object.pk %}" class="btn  btn-danger"> Delete Receipt </a>
+            {% endif %}
+            <a href="{% url 'receipt' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        
+    </form>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeField = document.getElementById('id_type');
+            const remarksField = document.getElementById('remarks-field');
+            const paidField = document.getElementById('id_paid_amount');
+            
+        
+            function updateDueAmount() {
+                var total = parseFloat(document.getElementById('id_total').value) || 0;
+                var paid = parseFloat(document.getElementById('id_paid_amount').value) || 0;
+        
+                console.log("Total:", total);
+                console.log("Paid:", paid);
+        
+                var due = total - paid;
+                console.log("Due:", due);
+                document.getElementById('id_due_amount').value = due.toFixed(2);
+            }
+
+            function toggleRemarksField() {
+                if (typeField.value === 'OTHER') {  // 'OT' corresponds to ReceiptTypeChoice.OTHER
+                    remarksField.style.display = 'block';
+                } else {
+                    remarksField.style.display = 'none';
+                }
+            }
+            // Ensure all initial values are calculated
+            updateDueAmount();
+
+            // Initial check
+            toggleRemarksField();
+
+            // Add event listener to update remarks field visibility on type change
+            paidField.addEventListener('change', updateDueAmount);
+            typeField.addEventListener('change', toggleRemarksField);
+        });
+    </script>
+
+{% endblock content %}

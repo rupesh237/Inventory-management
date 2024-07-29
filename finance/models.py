@@ -21,7 +21,7 @@ class Employee(models.Model):
         return f"{self.first_name} {self.last_name}"
     
 class Payroll(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.DO_NOTHING)
     period_start = models.DateField()
     period_end = models.DateField()
     paid_date = models.DateField()
@@ -30,7 +30,7 @@ class Payroll(models.Model):
     bonuses = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     net_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    prepared_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    prepared_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

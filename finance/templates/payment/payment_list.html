@@ -3,15 +3,15 @@
 {% load widget_tweaks %}
 
 
-{% block title %} Receipt {% endblock title %}
+{% block title %} Payment {% endblock title %}
 
 
 {% block content %}
     <!-- Log on to codeastro.com for more projects -->
     <div class="row" style="color: #4e4e4e; font-style: bold; font-size: 3rem; ">
-        <div class="col-md-8">Receipt List</div>
+        <div class="col-md-8">Payment List</div>
         <div class="col-md-4">               
-            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-receipt' %}">Add New Receipt</a> </div>
+            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-payment' %}">Add New Payment</a> </div>
         </div>
     </div>
     
@@ -36,9 +36,9 @@
         
         <thead class="thead-dark align-middle">
             <tr>
-                <th width="30%">Receipt No</th>
+                <th width="10%">Payment No</th>
                 <th>Type</th>
-                <th>Paid By</th>
+                <th>Paid To</th>
                 <th>Total</th>
                 <th>Prepared By</th>
                 <th>Date</th>
@@ -49,20 +49,20 @@
 {% if object_list %}
 
         <tbody>     <!-- Log on to codeastro.com for more projects -->    
-            {% for receipt in object_list %}
+            {% for payment in object_list %}
                 <tr>
                     <td class="align-middle">
-                        <p>{{ receipt.receipt_no }}</p>
+                        <p>{{ payment.payment_no }}</p>
                     </td>
-                    <td class="align-middle">{{ receipt.type }}</td>
-                    <td class="align-middle">{{ receipt.paid_by }}</td>
-                    <td class="align-middle">{{ receipt.total }}</td>
-                    <td class="align-middle">{{ receipt.prepared_by }}</td>
-                    <td class="align-middle">{{ receipt.date }}</td>
+                    <td class="align-middle">{{ payment.type }}</td>
+                    <td class="align-middle">{{ payment.paid_to }}</td>
+                    <td class="align-middle">{{ payment.total }}</td>
+                    <td class="align-middle">{{ payment.prepared_by }}</td>
+                    <td class="align-middle">{{ payment.date }}</td>
                     <td class="align-middle">
-                        <a href="#" class="btn btn-info btn-sm">View</a>
+                        <a href="{% url 'edit-payment' payment.pk %}" class="btn btn-info btn-sm">Edit</a>
                         {% if user.is_staff %}
-                        <a href="{% url 'delete-receipt' receipt.pk %}" class="btn btn-danger btn-sm"> Delete </a>
+                        <a href="{% url 'delete-payment' payment.pk %}" class="btn btn-danger btn-sm"> Delete </a>
                         {% endif %}
                     </td>          
                 </tr>

@@ -30,6 +30,7 @@ from .forms import (
 from inventory.models import Stock
 from datetime import datetime
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 
 
 
@@ -161,9 +162,11 @@ class PurchaseCreateView(View):
             # saves bill
             bill_no = request.POST['purchase-bill']
             purchase_discount = request.POST['purchase-discount']
-            purchase_date = request.POST['purchase-date']
+            purchase_date_str = request.POST['purchase-date']
+            purchase_date = parse_date(purchase_date_str) if purchase_date_str else timezone.now()
+            print(purchase_date)
 
-            if purchase_date:
+            if purchase_date is not None:
                if bill_no:
                    billobj = PurchaseBill(supplier=supplierobj, billno=bill_no, time=purchase_date, prepared_by=request.user) 
                else:
@@ -406,7 +409,7 @@ class SaleBillView(View):
         else:
              # Print form errors to debug
             print(form.errors)
-            messages.error(request, "Form is not valid")
+            messages.error(request, "Form is Invaid.")
         context = {
             'bill'          : SaleBill.objects.get(billno=billno),
             'items'         : SaleItem.objects.filter(billno=billno),

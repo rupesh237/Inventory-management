@@ -21,7 +21,7 @@ class Supplier(models.Model):
 #contains the purchase bills made
 class PurchaseBill(models.Model):
     billno = models.AutoField(primary_key=True)
-    time = models.DateTimeField(auto_now=True)
+    time = models.DateTimeField()
     supplier = models.ForeignKey(Supplier, on_delete = models.CASCADE, related_name='purchasesupplier')
     prepared_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
@@ -89,6 +89,8 @@ class PurchaseBillDetails(models.Model):
                 'paid_to': self.billno.supplier.name,
                 'prepared_by': self.billno.prepared_by,
                 'total': self.total,
+                'paid_amount': self.paid_amount,
+                'due_amount': self.due_amount,
                 'date': self.billno.time,
             }
         )
@@ -98,6 +100,8 @@ class PurchaseBillDetails(models.Model):
             payment.paid_to = self.billno.supplier.name
             payment.prepared_by = self.billno.prepared_by
             payment.total = self.total
+            payment.paid_amount = self.paid_amount
+            payment.due_amount = self.due_amount
             payment.date = self.billno.time
             payment.save()
         
@@ -190,6 +194,8 @@ class SaleBillDetails(models.Model):
                 'paid_by': self.billno.name,
                 'prepared_by': self.billno.prepared_by,
                 'total': self.total,
+                'paid_amount': self.paid_amount,
+                'due_amount': self.due_amount,
                 'date': self.billno.time,
             }
         )
@@ -199,6 +205,8 @@ class SaleBillDetails(models.Model):
             receipt.paid_by = self.billno.name
             receipt.prepared_by = self.billno.prepared_by
             receipt.total = self.total
+            receipt.paid_amount = self.paid_amount
+            receipt.due_amount = self.due_amount
             receipt.date = self.billno.time
             receipt.save()
 
