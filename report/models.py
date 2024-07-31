@@ -22,6 +22,7 @@ class PaymentTypeChoice(models.TextChoices):
 class ReceiptTypeChoice(models.TextChoices):
     SALE = "SALE", _("Sale")
     SERVICE_PROVIDED = "SERVICE PROVIDED", _("Service Provided")
+    DUE = "DUE", _("Due")
     OTHER = "OTHER", _("Other")
 
 class Report(models.Model):
