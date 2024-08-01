@@ -47,6 +47,24 @@ label {
   color: #55b159;
 }
 
+.breadcrumb-report {
+  background-color: #607d8b; /* Change background color */
+}
+
+.breadcrumb-item.breadcrumb-report + .breadcrumb-item.breadcrumb-report::before {
+  content: "/";
+  color: #ffffff; /* Change separator color */
+}
+
+.breadcrumb-item.breadcrumb-report a {
+  color: #ffffff; /* Change link color */
+}
+
+.breadcrumb-item.active.breadcrumb-report {
+  color: rgb(58, 58, 58); /* Change active item color */
+}
+
+
 p {
   color: rgb(49, 49, 49); /* For About */
 }

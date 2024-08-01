@@ -2,7 +2,7 @@
     <div class="table-responsive col-md-6">
       <table class="table table-bordered" border="1">
         <thead>
-          <tr>
+          <tr style="text-align:center">
             <th colspan="6">Receipts</th>
           </tr>
           <tr>
@@ -139,7 +139,7 @@
     <div class="table-responsive col-md-6">
       <table class="table table-bordered" border="1">
         <thead>
-          <tr>
+          <tr style="text-align:center">
             <th colspan="6">Payments</th>
           </tr>
           <tr>
@@ -288,7 +288,7 @@
           </tr>
           {% endfor %}
           <tr>
-            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Due Amount</b></td>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Amount</b></td>
             <td>{{ dict_payments.DUE|floatformat:2 }}</td>
             <td>-</td>
           </tr>

@@ -29,11 +29,17 @@
     <br>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-3">
             <a href="{% url 'mis-report' %}" class="btn btn-success btn-lg btn-block btn-huge">MIS Report</a>
         </div>
-        <div class="col-md-6">
-            <a href="#" class="btn btn-success btn-lg btn-block btn-huge">Day Book</a>
+        <div class="col-md-3">
+            <a href="{% url 'day-book' %}" class="btn btn-success btn-lg btn-block btn-huge">Day Book</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'receipt-report' %}" class="btn btn-success btn-lg btn-block btn-huge">Receipt Report</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'payment-report' %}" class="btn btn-success btn-lg btn-block btn-huge">Payment Report</a>
         </div>
     </div>
 
@@ -44,10 +50,36 @@
 
             <div class="col-md-6">
                 <div style="color: #4e6570; font-style: bold; font-size: 1.3em; border-bottom: 2px solid #4e6570">Recent Payment</div><br>
+                {% for payment in payments %}
+                {% if not forloop.first %}
+                    <br><div style="border-bottom: 0.5px solid #4e6570"></div><br>
+                {% endif %}
+                <div class="row">               
+                    <div class="col-md-9"> 
+                        Payment No: #{{ payment.payment_no }} <br> 
+                        Paid To: <b>{{ payment.paid_to }}</b> <br>
+                        <small><i>{{ payment.date }}</i></small>
+                    </div>
+                    <div class="col-md-2"> <br> ${{ payment.total }} <br></div>
+                </div>
+                {% endfor %}
             </div>
 
             <div class="col-md-6">
                 <div style="color: #4e6570; font-style: bold; font-size: 1.3em; border-bottom: 2px solid #4e6570">Recent Receipt</div><br>
+                {% for receipt in receipts %}
+                {% if not forloop.first %}
+                    <br><div style="border-bottom: 0.5px solid #4e6570"></div><br>
+                {% endif %}
+                <div class="row">               
+                    <div class="col-md-9"> 
+                        Receipt No: #{{ receipt.receipt_no }} <br> 
+                        Paid By: <b>{{ receipt.paid_by }}</b> <br>
+                        <small><i>{{ receipt.date }}</i></small>
+                    </div>
+                    <div class="col-md-2"> <br> ${{ receipt.total }} <br></div>
+                </div>
+                {% endfor %}
             </div>
 
         </div>

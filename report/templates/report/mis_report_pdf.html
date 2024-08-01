@@ -1,0 +1,340 @@
+<div class="hg-table panel-body pb-table">
+    <div class="table-responsive col-md-6">
+      <table class="table table-bordered" border="1">
+        <thead>
+          <tr style="text-align:center">
+            <th colspan="6">Receipts</th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Receipt No.</th>
+            <th>Paid by</th>
+            <th>Total</th>
+            <th>Due</th>
+          </tr>
+        </thead>
+        <tbody class="body-row-tb">
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Sale</b></td>
+          </tr>
+          {% for sale in sale_list %}
+          {% if sale.total %}
+          <tr>
+            <td>{{ sale.date }}</td>
+            <td>{{ sale.receipt_no }}</td>
+            <td>{{ sale.paid_by }}</td>
+            <td>{{ sale.total|floatformat:2 }}</td>
+            <td>{{ sale.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Sale</b></td>
+            <td>{{ dict_receipt_totals.total_SALE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_receipt_dues.total_SALE_due %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_receipt_dues.total_SALE_due|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Service Provided</b></td>
+          </tr>
+          {% for service_provided in service_provided_list %}
+          {% if service_provided.total %}
+          <tr>
+            <td>{{ service_provided.date }}</td>
+            <td>{{ service_provided.receipt_no }}</td>
+            <td>{{ service_provided.paid_by }}</td>
+            <td>{{ service_provided.total|floatformat:2 }}</td>
+            <td>{{ service_provided.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Amount</b></td>
+            <td>{{ service_provided_total|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if service_provided_due %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ service_provided_due|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Due</b></td>
+          </tr>
+          {% for receipt_due in receipt_due_list %}
+          {% if receipt_due.total %}
+          <tr>
+            <td>{{ receipt_due.date }}</td>
+            <td>{{ receipt_due.receipt_no }}</td>
+            <td>{{ receipt_due.paid_by }}</td>
+            <td>{{ receipt_due.total|floatformat:2 }}</td>
+            <td>{{ receipt_due.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Amount</b></td>
+            <td>{{ dict_receipt_totals.total_DUE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_receipt_dues.total_DUE_due %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_receipt_dues.total_DUE_due|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Other</b></td>
+          </tr>
+          {% for other_receipt in other_receipt_list %}
+          {% if other_receipt.total %}
+          <tr>
+            <td>{{ other_receipt.date }}</td>
+            <td>{{ other_receipt.receipt_no }}</td>
+            <td>{{ other_receipt.paid_by }}</td>
+            <td>{{ other_receipt.total|floatformat:2 }}</td>
+            <td>{{ other_receipt.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Amount</b></td>
+            <td>{{ dict_receipt_totals.total_OTHER|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_receipt_dues.total_OTHER_due %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_receipt_dues.total_OTHER_due|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          
+          <tr>
+            <td colspan="4" style="text-align:center"><b>Total </b></td>
+            <td><b>{{ total_sum_receipt|floatformat:2 }}</b></td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="text-align:center"><b>Due </b></td>
+            <td><b>{{ total_due_receipt|floatformat:2 }}</b></td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-responsive col-md-6">
+      <table class="table table-bordered" border="1">
+        <thead>
+          <tr style="text-align:center">
+            <th colspan="6">Payments</th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Payment No.</th>
+            <th>Paid To</th>
+            <th>Total</th>
+            <th>Due</th>
+          </tr>
+        </thead>
+        <tbody class="body-row-tb">
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Purchase</b></td>
+          </tr>
+          {% for purchase in purchase_list %}
+          <tr>
+            <td>{{ purchase.date }}</td>
+            <td>{{ purchase.payment_no }}</td>
+            <td>{{ purchase.paid_to }}</td>
+            <td>{{ purchase.total|floatformat:2 }}</td>
+            <td>{{ purchase.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Purchase</b></td>
+            <td>{{ dict_payments.PURCHASE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.PURCHASE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Expense</b></td>
+          </tr>
+          {% for expense in expense_list %}
+          <tr>
+            <td>{{ expense.date }}</td>
+            <td>{{ expense.payment_no }}</td>
+            <td>{{ expense.paid_to }}</td>
+            <td>{{ expense.total|floatformat:2 }}</td>
+            <td>{{ expense.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Expense</b></td>
+            <td>{{ dict_payments.EXPENSE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.EXPENSE %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.EXPENSE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Food</b></td>
+          </tr>
+          {% for food in food_list %}
+          <tr>
+            <td>{{ food.date }}</td>
+            <td>{{ food.payment_no }}</td>
+            <td>{{ food.paid_to }}</td>
+            <td>{{ food.total|floatformat:2 }}</td>
+            <td>{{ food.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Food Expenses</b></td>
+            <td>{{ dict_payments.FOOD|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.FOOD %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.FOOD|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Salaries</b></td>
+          </tr>
+          {% for salary in salary_list %}
+          <tr>
+            <td>{{ salary.date }}</td>
+            <td>{{ salary.payment_no }}</td>
+            <td>{{ salary.paid_to }}</td>
+            <td>{{ salary.total|floatformat:2 }}</td>
+            <td>{{ salary.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Salaries </b></td>
+            <td>{{ dict_payments_totals.SALARY|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.SALARY %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.SALARY|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Travelling Allowance</b></td>
+          </tr>
+          {% for travel in travel_list %}
+          <tr>
+            <td>{{ travel.date }}</td>
+            <td>{{ travel.payment_no }}</td>
+            <td>{{ travel.paid_to }}</td>
+            <td>{{ travel.total|floatformat:2 }}</td>
+            <td>{{ travel.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Travelling Allowances</b></td>
+            <td>{{ dict_payments.TRAVEL|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.TRAVEL %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.TRAVEL|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Due Payment</b></td>
+          </tr>
+          {% for payment_due in payment_due_list %}
+          <tr>
+            <td>{{ payment_due_list.date }}</td>
+            <td>{{ payment_due_list.payment_no }}</td>
+            <td>{{ payment_due_list.paid_to }}</td>
+            <td>{{ payment_due_list.total|floatformat:2 }}</td>
+            <td>{{ payment_due_list.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Amount</b></td>
+            <td>{{ dict_payments.DUE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.DUE %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.DUE|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr style="text-align:center">
+            <td colspan="6" class="color-inner-hedng box-center"><b>Other Charges</b></td>
+          </tr>
+          {% for other_payment in other_payment_list %}
+          <tr>
+            <td>{{ other_payment.date }}</td>
+            <td>{{ other_payment.payment_no }}</td>
+            <td>{{ other_payment.paid_to }}</td>
+            <td>{{ other_payment.total|floatformat:2 }}</td>
+            <td>{{ other_payment.due_amount|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Total Other Charges</b></td>
+            <td>{{ dict_payments.OTHER|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% if dict_payments_dues.OTHER %}
+          <tr>
+            <td colspan="4" style="text-align:right" class="color-inner-hedng box-center"><b>Due Amount</b></td>
+            <td>{{ dict_payments_dues.OTHER|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+          {% endif %}
+          <tr>
+            <td colspan="4" style="text-align:center"><b>Total </b></td>
+            <td><b>{{ total_payments|floatformat:2 }}</b></td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="text-align:center"><b>Due </b></td>
+            <td>{{ due_payments|floatformat:2 }}</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
