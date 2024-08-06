@@ -288,6 +288,10 @@ class SaleCreateView(View):
                 billitem.save()
             # create bill details object
             billdetailsobj = SaleBillDetails(billno=billobj, discount_percentage=sale_discount)
+            if billobj.gstin is not None:
+                billdetailsobj.cgst = 0.13 * billobj.get_total_price()
+            else:
+                billdetailsobj.cgst = 0.0
             billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Sold items have been registered successfully")
@@ -333,6 +337,7 @@ class PurchaseBillView(View):
             'items'         : PurchaseItem.objects.filter(billno=billno),
             'billdetails'   : PurchaseBillDetails.objects.get(billno=billno),
             'bill_base'     : self.bill_base,
+            'bill_total'    : (PurchaseBill.objects.get(billno=billno)).get_total_price()
         }
         return render(request, self.template_name, context)
 
@@ -349,20 +354,16 @@ class PurchaseBillView(View):
             billdetailsobj.cgst = form.cleaned_data.get('cgst')
             billdetailsobj.sgst = form.cleaned_data.get('sgst')
             billdetailsobj.igst = form.cleaned_data.get('igst')
-            billdetailsobj.cess = form.cleaned_data.get('cess', 0)  # Handle default value if cess is not provided
+            billdetailsobj.cess = form.cleaned_data.get('cess')
             billdetailsobj.tcs = form.cleaned_data.get('tcs')
             billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
             billdetailsobj.total = form.cleaned_data.get('total')
             billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
             billdetailsobj.due_amount = form.cleaned_data.get('due_amount', 0)
 
-            print(billdetailsobj.cess)
-            if billdetailsobj.cess is not None:
-               billdetailsobj.get_total_amount_with_taxes()
-            if billdetailsobj.discount_amount is not None:
-               if billdetailsobj.cess is None:
-                   billdetailsobj.cess = 0.0
-               billdetailsobj.get_total_amount_with_taxes()
+            if billdetailsobj.paid_amount is None:
+                billdetailsobj.paid_amount = 0.0
+                
             billdetailsobj.save()
             messages.success(request, "Bill details have been modified successfully")
         else:
@@ -374,6 +375,7 @@ class PurchaseBillView(View):
             'items'         : PurchaseItem.objects.filter(billno=billno),
             'billdetails'   : PurchaseBillDetails.objects.get(billno=billno),
             'bill_base'     : self.bill_base,
+            'bill_total'    : (PurchaseBill.objects.get(billno=billno)).get_total_price()
         }
         return render(request, self.template_name, context)
 
@@ -390,6 +392,7 @@ class SaleBillView(View):
             'items'         : SaleItem.objects.filter(billno=billno),
             'billdetails'   : SaleBillDetails.objects.get(billno=billno),
             'bill_base'     : self.bill_base,
+            'bill_total'    : (SaleBill.objects.get(billno=billno)).get_total_price()
         }
         return render(request, self.template_name, context)
 
@@ -406,20 +409,16 @@ class SaleBillView(View):
             billdetailsobj.cgst = form.cleaned_data.get('cgst')
             billdetailsobj.sgst = form.cleaned_data.get('sgst')
             billdetailsobj.igst = form.cleaned_data.get('igst')
-            billdetailsobj.cess = form.cleaned_data.get('cess', 0)  # Handle default value if cess is not provided
+            billdetailsobj.cess = form.cleaned_data.get('cess')
             billdetailsobj.tcs = form.cleaned_data.get('tcs')
             billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
             billdetailsobj.total = form.cleaned_data.get('total')
             billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
             billdetailsobj.due_amount = form.cleaned_data.get('due_amount', 0)
 
-            print(billdetailsobj.cess)
-            if billdetailsobj.cess is not None:
-               billdetailsobj.get_total_amount_with_taxes()  # Ensure this method calculates correctly
-            if billdetailsobj.discount_amount is not None:
-               if billdetailsobj.cess is None:
-                   billdetailsobj.cess = 0.0
-               billdetailsobj.get_total_amount_with_taxes()
+            if billdetailsobj.paid_amount is None:
+                billdetailsobj.paid_amount = 0.0
+
             billdetailsobj.save()
             messages.success(request, "Bill details have been modified successfully")
         else:
@@ -431,6 +430,7 @@ class SaleBillView(View):
             'items'         : SaleItem.objects.filter(billno=billno),
             'billdetails'   : SaleBillDetails.objects.get(billno=billno),
             'bill_base'     : self.bill_base,
+            'bill_total'    : (SaleBill.objects.get(billno=billno)).get_total_price()
         }
         return render(request, self.template_name, context)
     

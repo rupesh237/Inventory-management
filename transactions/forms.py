@@ -42,9 +42,13 @@ PurchaseItemFormset = formset_factory(PurchaseItemForm, extra=1)
 class PurchaseDetailsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['cgst'].required = False
+        self.fields['sgst'].required = False
+        self.fields['igst'].required = False
         self.fields['cess'].required = False
-        self.fields['discount_amount'].required = False
         self.fields['tcs'].required = False
+        self.fields['discount_amount'].required = False
+        self.fields['paid_amount'].required = False
 
     class Meta:
         model = PurchaseBillDetails
@@ -80,6 +84,7 @@ class SaleForm(forms.ModelForm):
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only', 'required': 'true'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})
+        self.fields['gstin'].required = False  # Make the field not required
     class Meta:
         model = SaleBill
         fields = ['name', 'phone', 'address', 'email', 'gstin']
@@ -112,9 +117,13 @@ SaleItemFormset = formset_factory(SaleItemForm, extra=1)
 class SaleDetailsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['cgst'].required = False
+        self.fields['sgst'].required = False
+        self.fields['igst'].required = False
         self.fields['cess'].required = False
-        self.fields['discount_amount'].required = False
         self.fields['tcs'].required = False
+        self.fields['discount_amount'].required = False
+        self.fields['paid_amount'].required = False
         
     class Meta:
         model = SaleBillDetails

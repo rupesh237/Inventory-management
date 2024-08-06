@@ -117,6 +117,12 @@
                                         <td class="inner-box" style="width: 30%; font-weight: bold;">&nbsp;VAT @ 13%</td>
                                         <td class="inner-box align-middle" style="width: 30%;">&nbsp; <input type="text" name="cgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cgst %}{{ billdetails.cgst }}{% endif %}"></td>
                                     </tr>
+                                    <tr style="display: none;">
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;Total Bill:</td>
+                                        <td class="inner-box align-middle">&nbsp;
+                                            <input type="number" name="bill_total" id="bill-total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{{ bill_total }}">
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 2.5%</td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
@@ -233,6 +239,57 @@
             // Ensure all initial values are calculated
             updateDueAmount();
             validateForm();
+
+            var totalAmount = parseFloat(document.getElementById('bill-total').value) || 0;
+            var cgstField = document.querySelector('input[name="cgst"]');
+            var sgstField = document.querySelector('input[name="sgst"]');
+            var igstField = document.querySelector('input[name="igst"]');
+            var cessField = document.querySelector('input[name="cess"]');
+            var tcsField = document.querySelector('input[name="tcs"]');
+            var discountField = document.querySelector('input[name="discount_amount"]');
+
+            function calculateField(field, percentage) {
+                if (field) {
+                    var currentValue = parseFloat(field.value) || 0;
+                    if (currentValue !== 0) {
+                        field.value = "0.0";
+                    } else {
+                        var calculatedValue = totalAmount * percentage;
+                        field.value = calculatedValue.toFixed(2); // Set value with two decimal places
+                    }
+                }
+            }
+
+
+            function updateTotalAmount() {
+                var cgstValue = parseFloat(cgstField.value) || 0;
+                var sgstValue = parseFloat(sgstField.value) || 0; // Default to 0 if empty or invalid
+                var igstValue = parseFloat(igstField.value) || 0; // Default to 0 if empty or invalid
+                var cessValue = parseFloat(cessField.value) || 0; // Default to 0 if empty or invalid
+                var tcsValue = parseFloat(tcsField.value) || 0; // Default to 0 if empty or invalid
+                var discountValue = parseFloat(discountField.value) || 0;
+                var updatedTotalAmount = totalAmount + cgstValue + sgstValue + igstValue + cessValue + tcsValue - discountValue;
+                console.log("updatedTotalAmount:", updatedTotalAmount);
+                document.getElementById('total').value = updatedTotalAmount.toFixed(2);
+            }
+
+            function attachEvents(field, percentage) {
+                if (field) {
+                    field.addEventListener('focus', function() {
+                        calculateField(field, percentage);
+                        updateTotalAmount();
+                        updateDueAmount();
+                    });
+                    field.addEventListener('input', updateTotalAmount);
+                    field.addEventListener('input', updateDueAmount);
+                }
+            }
+
+            attachEvents(cgstField, 0.13);
+            attachEvents(sgstField, 0.025);
+            attachEvents(igstField, 0.05);
+            attachEvents(cessField, 0.0); // Assuming 'ANY OTHER CHARGES' has a variable rate or no default rate
+            attachEvents(tcsField, 0.01);
         });
     </script>
     
