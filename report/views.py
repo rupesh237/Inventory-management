@@ -49,6 +49,10 @@ class ReportHomeView(View):
                         'paid': item.paid_amount,
                         'due': item.due_amount,
                     })
+        # Calculating total sales and total due amounts
+        total_purchase = sum(purchase['total'] for purchase in purchase_data)
+        purchase_due = sum(purchase['due'] for purchase in purchase_data)
+
 
         # Data for sales-graph
         sale_bills = SaleBill.objects.filter(time__gte=a_months_ago, time__lte=today)
@@ -70,6 +74,9 @@ class ReportHomeView(View):
                         'paid': item.paid_amount,
                         'due': item.due_amount,
                     })
+        # Calculating total sales and total due amounts
+        total_sale = sum(sale['total'] for sale in sale_data)
+        sale_due = sum(sale['due'] for sale in sale_data)
 
         payments = Payment.objects.order_by('-date')[:4]
         receipts = Receipt.objects.order_by('-date')[:4]
@@ -79,6 +86,10 @@ class ReportHomeView(View):
             'sale_data': sale_data,
             'payments': payments,
             'receipts': receipts,
+            'total_purchase': total_purchase,
+            'purchase_due': purchase_due,
+            'total_sale': total_sale,
+            'sale_due': sale_due,
         }
         return render(request, self.template_name, context)
     

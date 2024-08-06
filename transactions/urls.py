@@ -19,4 +19,7 @@ urlpatterns = [
 
     path("purchases/<billno>", views.PurchaseBillView.as_view(), name="purchase-bill"),
     path("sales/<billno>", views.SaleBillView.as_view(), name="sale-bill"),
+
+    path('start-scan-product/', views.start_scan_product, name='start_scan_product'),
+    path('scan-product-result/', views.scan_product_result, name='scan_product_result'),
 ]

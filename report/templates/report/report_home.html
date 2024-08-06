@@ -16,13 +16,21 @@
     </div>
 
     <br> {% endcomment %}
-    <div id="container" style="position: relative; height:90vh; border: 1.2mm ridge #4e6570; border-radius: 20px;" class="align-middle table-bordered">
+    <div id="container" style="position: relative; height:95vh; border: 1.2mm ridge #4e6570; border-radius: 20px;" class="align-middle table-bordered">
         <div class="row">
             <div class="col-md-6">
                 <canvas id="purchase-graph"></canvas>
+                    <div class="col-md-12"> 
+                        Total Purchase: <b>{{ total_purchase }}</b><br> 
+                        Due Remaining: <b>{{ purchase_due }}</b> <br>
+                    </div>
             </div>
             <div class="col-md-6">
                 <canvas id="sales-graph"></canvas>
+                    <div class="col-md-12"> 
+                        Total Sale: <b>{{ total_sale }}</b> <br> 
+                        Due Remaining: <b>{{ sale_due }}</b> <br>
+                    </div>
             </div>
         </div>
     </div>

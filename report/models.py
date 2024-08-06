@@ -49,8 +49,8 @@ class Payment(models.Model):
     due_amount = models.FloatField(default=0.0)
     date = models.DateTimeField(blank=True, null=True)
 
-    purchasebill = models.ForeignKey(PurchaseBillDetails, on_delete=models.DO_NOTHING, blank=True, null=True)
-    payroll = models.ForeignKey(Payroll, on_delete=models.DO_NOTHING, null=True, blank=True)
+    purchasebill = models.ForeignKey(PurchaseBillDetails, on_delete=models.CASCADE, blank=True, null=True)
+    payroll = models.ForeignKey(Payroll, on_delete=models.CASCADE, null=True, blank=True)
 
     def clean(self):
         # Custom validation to ensure remarks are provided if type is 'Other'
@@ -99,7 +99,7 @@ class Receipt(models.Model):
     due_amount = models.FloatField(default=0.0)
     date = models.DateTimeField(blank=True, null=True)
 
-    salebill = models.ForeignKey(SaleBillDetails, on_delete=models.DO_NOTHING, blank=True, null=True)
+    salebill = models.ForeignKey(SaleBillDetails, on_delete=models.CASCADE, blank=True, null=True)
 
     def clean(self):
         # Custom validation to ensure remarks are provided if type is 'Other'

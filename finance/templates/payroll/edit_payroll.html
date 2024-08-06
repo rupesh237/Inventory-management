@@ -63,7 +63,9 @@
                 <button type="reset" class="btn btn-danger" >Reset</button>
             {% endif %}
             {% if delbtn %}
+            {% if user.is_staff %}
                 <a href="{% url 'delete-payroll' payroll.pk %}" class="btn  btn-danger"> Delete Payroll </a>
+            {% endif %}
             {% endif %}
             <a href="{% url 'payroll' %}" class="btn btn-secondary">Cancel</a>
         </div>

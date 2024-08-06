@@ -69,7 +69,9 @@
                 <button type="reset" class="btn btn-danger" >Reset</button>
             {% endif %}
             {% if delbtn %}
-                <a href="{% url 'delete-stock' object.pk %}" class="btn  btn-danger"> Delete Employee </a>
+            {% if user.is_staff %}
+            <a href="{% url 'delete-employee' object.pk %}" class="btn  btn-danger"> Delete Employee </a>
+            {% endif %}
             {% endif %}
             <a href="{% url 'inventory' %}" class="btn btn-secondary">Cancel</a>
         </div>

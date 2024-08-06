@@ -38,7 +38,9 @@
             <tr>
                 <th width="15%">Stock Name</th>
                 <th>Category</th>
-                <th>Current Stock in Inventory</th>
+                <th>Current Stock</th>
+                <th>Price per Item</th>
+                <th>Placed At</th>
                 <th>Created By</th>
                 <th>Actions</th>
             </tr>
@@ -54,11 +56,13 @@
                     </td>
                     <td class="align-middle">{{ stock.category }}</td>
                     <td class="align-middle">{{ stock.quantity }} ({{ stock.unit }})</td>
+                    <td class="align-middle">{{ stock.price }}</td>
+                    <td class="align-middle">{{ stock.placed_at }}</td>
                     <td class="align-middle">{{ stock.created_by }}</td>
                     <td class="align-middle">
-                        <a href="{% url 'edit-stock' stock.pk %}" class="btn btn-info btn-sm">Edit Details</a>
+                        <a href="{% url 'edit-stock' stock.pk %}" class="btn btn-info btn-sm">Edit</a>
                         {% if user.is_staff %}
-                        <a href="{% url 'delete-stock' stock.pk %}" class="btn btn-danger btn-sm"> Delete Stock </a>
+                        <a href="{% url 'delete-stock' stock.pk %}" class="btn btn-danger btn-sm"> Delete</a>
                         {% endif %}
                     </td>          
                 </tr>

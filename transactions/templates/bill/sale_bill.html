@@ -41,7 +41,7 @@
                             <table class="outer-box" style="width: 800px; margin-left: auto; margin-right: auto;">
                                 <tbody>
                                     <tr>
-                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 123456789CASTR0</td>
+                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 619836096</td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="width: 50%; font-weight: bold;">&nbsp;NAME OF CONSIGNEE / BUYER</td>
@@ -49,7 +49,7 @@
                                         <td class="inner-box" style="width: 25%;">&nbsp;{{ bill.billno }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="width: 50%;">&nbsp;{{ bill.supplier.name }}</td>
+                                        <td class="inner-box" style="width: 50%;">&nbsp;{{ bill.name }}</td>
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;DATE</td>
                                         <td class="inner-box" style="width: 25%;">&nbsp;{{ bill.time.date }}</td>
                                     </tr>
@@ -67,7 +67,7 @@
                                         <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="destination" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.destination %}{{ billdetails.destination }}{% endif %}"> </td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.supplier.gstin }}</td>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.gstin }}</td>
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;PO NO &amp; DATE</td>
                                         <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="po" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.po %}{{ billdetails.po }}{% endif %}"> </td>
                                     </tr><!-- Log on to codeastro.com for more projects -->
@@ -112,17 +112,18 @@
                                     <tr>
                                         <td class="inner-box" style="width: 35%; text-align: center;" rowspan="9">
                                             <p> <span style="font-weight: bold;">BANK DETAILS <br> M And MB Soft Tech</span> <br>
-                                                Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p>
+                                                BY CASH
+                                                {% comment %} Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p> {% endcomment %}
                                         </td>
                                         <td class="inner-box" style="width: 30%; font-weight: bold;">&nbsp;VAT @ 13%</td>
                                         <td class="inner-box align-middle" style="width: 30%;">&nbsp; <input type="text" name="cgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cgst %}{{ billdetails.cgst }}{% endif %}"></td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 2.5%</td>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 0%</td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;LOCAL TAX @ 5% </td>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;LOCAL TAX @ 0% </td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="igst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.igst %}{{ billdetails.igst }}{% endif %}"></td>
                                     </tr>
                                     <tr><!-- Log on to codeastro.com for more projects -->
@@ -130,7 +131,7 @@
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cess %}{{ billdetails.cess }}{% endif %}"></td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;TCS @ 1%</td>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;TCS @ 0%</td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="tcs" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tcs %}{{ billdetails.tcs }}{% endif %}"></td>
                                     </tr>
                                     <tr>

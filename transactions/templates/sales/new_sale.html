@@ -58,7 +58,13 @@
             
             {{ formset.management_form }}
 
-            <div class="panel-heading panel-heading-text">Product Details</div>
+            <div class="panel-heading panel-heading-text">Product Details
+                <button type="button" id="scan-product-button" class="btn btn-primary" style="float: right;">Scan Product</button>
+            </div>
+            <div id="scan-result" style="display: none;">
+                <div><strong>Stock:</strong> <span id="scan-stock-data"></span></div>
+                <div><strong>Price per Item:</strong> <span id="scan-price-data"></span></div>
+            </div>
             
                 <div id="stockitem"> 
                     <div class="panel-body">
@@ -234,6 +240,88 @@
             element.parents('.form-row').find('.totalprice').val(tprice);
             return false;
         });
+
+        // Scan Barcode
+        document.getElementById('scan-product-button').onclick = function() {
+            fetch("{% url 'start_scan_product' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            }).then(response => response.json()).then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    pollForScanResult();
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        };
+        
+        function pollForScanResult() {
+            fetch("{% url 'scan_product_result' %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else if (data.status === 'Scanning successful.') {
+                    var scanStock = document.getElementById('scan-stock-data');
+                    var scanPrice = document.getElementById('scan-price-data');
+                    var scanResult = document.getElementById('scan-result');
+                    console.log(data.stock);
+        
+                    if (scanStock && scanPrice && scanResult) {
+                        scanStock.innerText = data.stock;
+                        scanPrice.innerText = data.price_per_item;
+                        scanResult.style.display = 'hidden';
+                        autoFillProductDetails(data);
+                    } else {
+                        console.error("Scan result elements are missing.");
+                    }
+                } else {
+                    // Poll again if scanning is still in progress or not successful
+                    setTimeout(pollForScanResult, 5000); // Poll every second
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        };
+
+        function autoFillProductDetails(data) {
+            var stockItemContainer = document.getElementById('stockitem');
+            if (stockItemContainer) {
+                var formRows = stockItemContainer.querySelectorAll('.form-row');
+                if (formRows.length > 0) {
+                    var lastFormRow = formRows[formRows.length - 1];
+                    var stockSelect = lastFormRow.querySelector('select[name$="-stock"]');
+                    var perPriceInput = lastFormRow.querySelector('input[name$="-perprice"]');
+                    var quantityInput = lastFormRow.querySelector('input[name$="-quantity"]');
+                    
+                    if (stockSelect) {
+                        var stockText = String(data.stock); // The text you're looking for
+                
+                        // Find the option by its text content
+                        var options = Array.from(stockSelect.options);
+                        var option = options.find(opt => opt.text === stockText);
+                        
+                        if (option) {
+                            stockSelect.value = option.value; // Set the value of the select element
+                            stockSelect.dispatchEvent(new Event('change')); // Trigger the change event
+                            console.log('Stock value set to:', stockSelect.value);
+                        } else {
+                            console.error('Option not found with text:', stockText);
+                        }
+                    }
+                    if (perPriceInput) perPriceInput.value = data.price_per_item;
+                    if (quantityInput) quantityInput.focus();
+                } else {
+                    console.error("No .form-row elements found within #stockitem.");
+                }
+            } else {
+                console.error("#stockitem container not found.");
+            }
+        };
 
     </script>
 

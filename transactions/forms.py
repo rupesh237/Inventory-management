@@ -44,6 +44,7 @@ class PurchaseDetailsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['cess'].required = False
         self.fields['discount_amount'].required = False
+        self.fields['tcs'].required = False
 
     class Meta:
         model = PurchaseBillDetails
@@ -113,7 +114,11 @@ class SaleDetailsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['cess'].required = False
         self.fields['discount_amount'].required = False
+        self.fields['tcs'].required = False
         
     class Meta:
         model = SaleBillDetails
         fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'discount_amount', 'total', 'paid_amount', 'due_amount']
+
+class BarcodeUploadForm(forms.Form):
+    barcode_image = forms.ImageField()

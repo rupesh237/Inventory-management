@@ -180,10 +180,7 @@ class SaleBillDetails(models.Model):
         if not self.discount_amount:
             self.discount_amount = (float(self.discount_percentage) * total)/100
         self.cgst = 0.13 * total
-        self.sgst = 0.025 * total
-        self.igst = 0.05 * total
-        self.tcs = 0.01 * total
-        self.total = total + self.cgst + self.sgst + self.igst + self.cess + self.tcs - self.discount_amount
+        self.total = total + self.cgst - self.discount_amount
 
     def make_receipt_report(self):
         Receipt = apps.get_model('report', 'Receipt')

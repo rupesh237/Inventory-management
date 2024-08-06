@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.views.generic import (
     View, 
     ListView,
@@ -25,13 +26,28 @@ from .forms import (
     SupplierForm, 
     SaleForm,
     SaleItemFormset,
-    SaleDetailsForm
+    SaleDetailsForm,
+    BarcodeUploadForm
 )
-from inventory.models import Stock
+from inventory.models import Stock, Barcode
 from datetime import datetime
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.views.decorators.csrf import csrf_exempt
+import threading
 
+import cv2
+from PIL import Image
+from pyzbar.pyzbar import decode
+# import os
+# from ctypes import cdll
+
+# # Ensure the path to the directory containing libzbar-64.dll is in the PATH
+# zbar_path = r'C:\Program Files (x86)\ZBar\bin'
+# os.environ['PATH'] += os.pathsep + zbar_path
+
+# # Load the library explicitly using the absolute path
+# cdll.LoadLibrary(os.path.join(zbar_path, 'libzbar-0.dll'))
 
 
 
@@ -145,7 +161,7 @@ class PurchaseCreateView(View):
     template_name = 'purchases/new_purchase.html'
 
     def get(self, request, pk):
-        formset = PurchaseItemFormset(request.GET or None)              # renders an empty formset
+        formset = PurchaseItemFormset(request.GET or None) # renders an empty formset
         supplierobj = get_object_or_404(Supplier, pk=pk)  # gets the supplier object
         current_date = datetime.date(datetime.now())                  
         context = {
@@ -417,3 +433,123 @@ class SaleBillView(View):
             'bill_base'     : self.bill_base,
         }
         return render(request, self.template_name, context)
+    
+def scan_barcode(request):
+    if request.method == 'POST':
+        form = BarcodeUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            barcode_image = form.cleaned_data['barcode_image']
+            image = Image.open(barcode_image)
+            decoded_barcodes = decode(image)
+            if decoded_barcodes:
+                barcode_data = decoded_barcodes[0].data.decode('utf-8')
+                product_code = barcode_data[:12]
+                print(product_code)
+                try:
+                    barcode_query = Barcode.objects.filter(product_code=product_code).first()
+                    print(barcode_query)
+                    data = {
+                        'stock': barcode_query.product.name,
+                        'price_per_item': barcode_query.product.price,  # Adjust this according to your model
+                        'barcode': barcode_data
+                    }
+                    return JsonResponse(data)
+                except Stock.DoesNotExist:
+                    return JsonResponse({'error': 'Product not found'}, status=404)
+            return JsonResponse({'error': 'No barcode detected'}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+# Global variable to store the scan result
+scan_result = None
+scanning_active = False
+camera_initialized = False
+cap = None
+
+def initialize_camera():
+    global cap, camera_initialized
+    if not camera_initialized:
+        cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)  # Set width
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)  # Set height
+        cap.set(cv2.CAP_PROP_FPS, 30)  # Set frame rate if possible
+        # Warm up the camera
+        for _ in range(10):  # Capture and discard a few frames
+            cap.read()
+        camera_initialized = True
+
+def release_camera():
+    global cap, camera_initialized
+    if cap is not None:
+        cap.release()
+        cv2.destroyAllWindows()
+        cap = None
+        camera_initialized = False
+    
+@csrf_exempt
+def start_scan_product(request):
+    global scan_result, scanning_active
+
+    if request.method == 'POST':
+        if scanning_active:
+            return JsonResponse({'error': 'Scanning already in progress'}, status=400)
+        
+        scanning_active = True
+        scan_result = None
+
+        def scan_product():
+            global scan_result, scanning_active
+            initialize_camera()
+
+            while scanning_active:
+                success, frame = cap.read()
+                if not success:
+                    scan_result = {'error': 'Failed to capture image'}
+                    break
+                # Show the webcam feed
+                cv2.imshow("Scan Product", frame)
+                # Decode barcodes
+                for code in decode(frame):
+                    barcode_data = code.data.decode('utf-8')
+                    # print(barcode_data)
+                    product_code = barcode_data[:12]
+                    try:
+                        barcode_query = Barcode.objects.filter(product_code=product_code).first()
+                        if barcode_query:
+                            scan_result = {
+                                'status': 'Scanning successful.',
+                                'stock': barcode_query.product.name,
+                                'price_per_item': barcode_query.product.price,
+                                'barcode': barcode_data
+                            }
+                        else:
+                            scan_result = {'error': 'Product not found'}
+                        break
+                    except Exception as e:
+                        scan_result = {'error': str(e)}
+                        break
+
+                 # Break loop if scan result is set
+                if scan_result is not None:
+                    break
+                
+                # Exit the loop if 'q' is pressed
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            release_camera()
+            scanning_active = False
+
+        # Use a thread to run the scan_product function
+        threading.Thread(target=scan_product, daemon=True).start()
+        return JsonResponse({'status': 'Scanning started'})
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+def scan_product_result(request):
+    global scan_result
+    if scan_result:
+        result = scan_result
+        scan_result = None  # Do not reset as we want to keep the last result
+        return JsonResponse(result)
+    else:
+        return JsonResponse({'status': 'Scanning in progress'}, status=202)

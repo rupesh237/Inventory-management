@@ -52,7 +52,9 @@
                 <button type="reset" class="btn btn-danger" >Reset</button>
             {% endif %}
             {% if delbtn %}
+            {% if user.is_staff %}
                 <a href="{% url 'delete-supplier' supplier.pk %}" class="btn btn-danger"> Delete Supplier </a>
+            {% endif %}
             {% endif %}
             <a href="{% url 'suppliers-list' %}" class="btn btn-secondary">Cancel</a>
         </div>
