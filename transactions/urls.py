@@ -16,6 +16,7 @@ urlpatterns = [
     path('sales/', views.SaleView.as_view(), name='sales-list'),
     path('sales/new', views.SaleCreateView.as_view(), name='new-sale'),
     path('sales/<pk>/delete', views.SaleDeleteView.as_view(), name='delete-sale'),
+    path('sales/get_customer_details/', views.get_customer_details, name='get_customer_details'),
 
     path("purchases/<billno>", views.PurchaseBillView.as_view(), name="purchase-bill"),
     path("sales/<billno>", views.SaleBillView.as_view(), name="sale-bill"),

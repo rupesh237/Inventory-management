@@ -78,9 +78,12 @@ class SupplierForm(forms.ModelForm):
 
 # form used to get customer details
 class SaleForm(forms.ModelForm):
+    name = forms.CharField(max_length=150, required=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs.update({'class': 'textinput form-control', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only', 'required': 'true'})
+        self.fields['name'].widget = forms.TextInput(attrs={'list': 'names', 'class': 'form-control', 'required': 'true'})
+        self.fields['name'].widget.attrs.update({'class': 'form-control', 'id': 'name', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only',})
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only', 'required': 'true'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})

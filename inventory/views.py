@@ -48,8 +48,8 @@ class StockUpdateView(SuccessMessageMixin, UpdateView):                         
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Stock'
-        context["savebtn"] = 'Update Stock'
-        context["delbtn"] = 'Delete Stock'
+        context["savebtn"] = 'Update'
+        context["delbtn"] = 'Delete'
         return context
 
 

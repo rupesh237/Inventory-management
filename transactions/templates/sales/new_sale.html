@@ -26,9 +26,14 @@
             {{ form.gstin.errors }}
 
             <div class="form-group">
-                <label for="{{ form.name.id_for_label }}" class="panel-body-text">Customer Name:</label>
-                {{ form.name }}                
-            </div><!-- Log on to codeastro.com for more projects -->
+                <label for="name" class="panel-body-text">Customer Name:</label>
+                <input type="text" id="name" name="name" list="names" class="form-control" required>
+                <datalist id="names">
+                    {% for bill in sale_bills %}
+                        <option value="{{ bill.name }}">
+                    {% endfor %}
+                </datalist>
+            </div>
 
             <div class="form-row">
                 <div class="form-group col-md-6"> 
@@ -73,7 +78,12 @@
                             <div class="form-group col-md-6">
                                 {{ iform.stock.errors }}
                                 <label class="panel-body-text">Stock:</label>
-                                {{ iform.stock }}
+                                <select name="{{ form.stock.name }}" class="textinput form-control setprice stock" required="true" id="{{ form.stock.id_for_label }}">
+                                    <option value="" selected="">---------</option>
+                                    {% for stock in stocks %}
+                                        <option value="{{ stock.id }}" data-price="{{ stock.price }}">{{ stock.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="form-group col-md-2">
                                 <label class="panel-body-text">Price per item:</label>
@@ -123,7 +133,62 @@
     <script type="text/javascript" src="{% static 'js/jquery-3.2.1.slim.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dialogbox.js' %}"></script>
     <script type="text/javascript">
+
+        // Customer Details
+        document.addEventListener('DOMContentLoaded', function() {
+            var nameField = document.getElementById('name');
+            if (nameField) {
+                nameField.addEventListener('change', function() {
+                    var selectedName = this.value;
+                    console.log("Name:", selectedName);
+                    if (selectedName) {
+                        fetch(`get_customer_details/?name=${selectedName}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('id_phone').value = data.phone || '';
+                                document.getElementById('id_email').value = data.email || '';
+                                document.getElementById('id_address').value = data.address || '';
+                                document.getElementById('id_gstin').value = data.gstin || '';
+                            })
+                            .catch(error => {
+                                console.error('Error fetching customer details:', error);
+                            });
+                    } else {
+                        document.getElementById('id_phone').value = '';
+                        document.getElementById('id_email').value = '';
+                        document.getElementById('id_address').value = '';
+                        document.getElementById('id_gstin').value = '';
+                    }
+                });
+            }
+        });
         
+        //stock selection
+        document.addEventListener('DOMContentLoaded', function() {
+            var forms = document.querySelectorAll('.form-row');
+        
+            forms.forEach(function(form) {
+                var stockSelect = form.querySelector('.stock');
+                var perpriceInput = form.querySelector('.price');
+                var quantityInput = form.querySelector('.quantity')
+        
+                if (stockSelect) {
+                    stockSelect.addEventListener('change', function() {
+                        var selectedOption = stockSelect.options[stockSelect.selectedIndex];
+                        var price = selectedOption.getAttribute('data-price');
+                        
+                        if (price) {
+                            perpriceInput.value = price;
+                        } else {
+                            perpriceInput.value = '';
+                        }
+                        quantityInput.focus()
+                    });
+                }
+            });
+        });
+
+
         //creates custom alert object
         var custom_alert = new custom_alert();
 
@@ -294,7 +359,7 @@
                 var formRows = stockItemContainer.querySelectorAll('.form-row');
                 if (formRows.length > 0) {
                     var lastFormRow = formRows[formRows.length - 1];
-                    var stockSelect = lastFormRow.querySelector('select[name$="-stock"]');
+                    var stockSelect = lastFormRow.querySelector('.stock');
                     var perPriceInput = lastFormRow.querySelector('input[name$="-perprice"]');
                     var quantityInput = lastFormRow.querySelector('input[name$="-quantity"]');
                     
@@ -308,7 +373,7 @@
                         if (option) {
                             stockSelect.value = option.value; // Set the value of the select element
                             stockSelect.dispatchEvent(new Event('change')); // Trigger the change event
-                            console.log('Stock value set to:', stockSelect.value);
+                            //console.log('Stock value set to:', stockSelect.value);
                         } else {
                             console.error('Option not found with text:', stockText);
                         }

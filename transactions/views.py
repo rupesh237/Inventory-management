@@ -168,6 +168,7 @@ class PurchaseCreateView(View):
             'formset'   : formset,
             'supplier'  : supplierobj,
             'current_date' : current_date,
+            'stocks': Stock.objects.filter(is_deleted=False),
         }                                                                       # sends the supplier and formset as context
         return render(request, self.template_name, context)
 
@@ -250,6 +251,25 @@ class SaleView(ListView):
 
 
 # used to generate a bill object and save items
+def get_customer_details(request):
+    name = request.GET.get('name', None)
+    print(name)
+    if name:
+        try:
+            sale_bill = SaleBill.objects.filter(name=name).first()
+            data = {
+                'phone': sale_bill.phone,
+                'email': sale_bill.email,
+                'address': sale_bill.address,
+                'gstin': sale_bill.gstin,
+            }
+        except SaleBill.DoesNotExist:
+            data = {'error': 'Customer not found'}
+    else:
+        data = {'error': 'No name provided'}
+
+    return JsonResponse(data)
+
 class SaleCreateView(View):                                                      
     template_name = 'sales/new_sale.html'
 
@@ -257,10 +277,12 @@ class SaleCreateView(View):
         form = SaleForm(request.GET or None)
         formset = SaleItemFormset(request.GET or None)                          # renders an empty formset
         stocks = Stock.objects.filter(is_deleted=False)
+        sale_bills = SaleBill.objects.all()
         context = {
             'form'      : form,
             'formset'   : formset,
-            'stocks'    : stocks
+            'stocks'    : stocks,
+            'sale_bills' : sale_bills,
         }
         return render(request, self.template_name, context)
 

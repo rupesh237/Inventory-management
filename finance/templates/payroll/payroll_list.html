@@ -57,9 +57,9 @@
                     <td class="align-middle">{{ payroll.net_salary }}</td>
                     <td class="align-middle">{{ payroll.paid_date }}</td>
                     <td class="align-middle">
-                        <a href="{% url 'edit-payroll' payroll.pk %}" class="btn btn-info btn-sm">Edit Details</a>
+                        <a href="{% url 'edit-payroll' payroll.pk %}" class="btn btn-info btn-sm"><i class="bi bi-pencil-fill"></i></a>
                         {% if user.is_staff %}
-                        <a href="{% url 'delete-payroll' payroll.pk %}" class="btn btn-danger btn-sm"> Delete Payroll </a>
+                        <a href="{% url 'delete-payroll' payroll.pk %}" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i></a>
                         {% endif %}
                     </td>          
                 </tr>

@@ -64,7 +64,7 @@
             {% endif %}
             {% if delbtn %}
             {% if user.is_staff %}
-                <a href="{% url 'delete-payroll' payroll.pk %}" class="btn  btn-danger"> Delete Payroll </a>
+                <a href="{% url 'delete-payroll' payroll.pk %}" class="btn  btn-danger"> Delete </a>
             {% endif %}
             {% endif %}
             <a href="{% url 'payroll' %}" class="btn btn-secondary">Cancel</a>

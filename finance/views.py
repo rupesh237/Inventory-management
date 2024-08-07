@@ -59,8 +59,8 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Employee'
-        context["savebtn"] = 'Update Employee'
-        context["delbtn"] = 'Delete Employee'
+        context["savebtn"] = 'Update'
+        context["delbtn"] = 'Delete'
         return context
 
 
@@ -114,8 +114,8 @@ class PayrollUpdateView(SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Payroll'
-        context["savebtn"] = 'Update Payroll'
-        context["delbtn"] = 'Delete Payroll'
+        context["savebtn"] = 'Update'
+        context["delbtn"] = 'Delete'
         return context
     
     def form_valid(self, form):
@@ -183,8 +183,8 @@ class ReceiptUpdateView(SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Receipt'
-        context["savebtn"] = 'Update Receipt'
-        context["delbtn"] = 'Delete Receipt'
+        context["savebtn"] = 'Update'
+        context["delbtn"] = 'Delete'
         return context
 
 class ReceiptDeleteView(View):                                                            # view class to delete stock
@@ -249,8 +249,8 @@ class PaymentUpdateView(SuccessMessageMixin, UpdateView):
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Payment'
-        context["savebtn"] = 'Update Payment'
-        context["delbtn"] = 'Delete Payment'
+        context["savebtn"] = 'Update'
+        context["delbtn"] = 'Delete'
         return context
 
     

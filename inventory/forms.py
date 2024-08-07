@@ -1,5 +1,5 @@
 from django import forms
-from .models import Stock
+from .models import Stock, Barcode
 
 class StockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -19,6 +19,11 @@ class StockForm(forms.ModelForm):
             print(instance.created_by)
         if commit:
             instance.save()
+        if not Barcode.objects.filter(product=instance).exists():
+            barcode = Barcode(product=instance)
+            barcode.generate_barcode()
+            barcode.save()
+            print("Barcode created.")
         return instance
 
     class Meta:

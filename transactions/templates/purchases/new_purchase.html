@@ -60,10 +60,15 @@
                     {% for form in formset %}
                         <div class="row form-row">
                             <div class="form-group col-md-6">
-                                {{ form.stock.errors }}
+                                {{ iform.stock.errors }}
                                 <label class="panel-body-text">Stock:</label>
-                                {{ form.stock }}
-                            </div><!-- Log on to codeastro.com for more projects -->
+                                <select name="{{ form.stock.name }}" class="textinput form-control setprice stock" required="true" id="{{ form.stock.id_for_label }}">
+                                    <option value="" selected="">---------</option>
+                                    {% for stock in stocks %}
+                                        <option value="{{ stock.id }}" data-price="{{ stock.price }}">{{ stock.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                             <div class="form-group col-md-2">
                                 <label class="panel-body-text">Price per item:</label>
                                 {{ form.perprice }}
@@ -110,13 +115,37 @@
             </div>
             
         </form>
-
     </div>
 
     <!-- Custom JS to add and remove item forms --><!-- Log on to codeastro.com for more projects -->
     <script type="text/javascript" src="{% static 'js/jquery-3.2.1.slim.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dialogbox.js' %}"></script>
     <script type="text/javascript">
+
+        //stock selection
+        document.addEventListener('DOMContentLoaded', function() {
+            var forms = document.querySelectorAll('.form-row');
+        
+            forms.forEach(function(form) {
+                var stockSelect = form.querySelector('.stock');
+                var perpriceInput = form.querySelector('.price');
+                var quantityInput = form.querySelector('.quantity')
+        
+                if (stockSelect) {
+                    stockSelect.addEventListener('change', function() {
+                        var selectedOption = stockSelect.options[stockSelect.selectedIndex];
+                        var price = selectedOption.getAttribute('data-price');
+                        
+                        if (price) {
+                            perpriceInput.value = price;
+                        } else {
+                            perpriceInput.value = '';
+                        }
+                        quantityInput.focus()
+                    });
+                }
+            });
+        });
         
         //creates custom alert object
         var custom_alert = new custom_alert();
@@ -255,7 +284,7 @@
                 var formRows = stockItemContainer.querySelectorAll('.form-row');
                 if (formRows.length > 0) {
                     var lastFormRow = formRows[formRows.length - 1];
-                    var stockSelect = lastFormRow.querySelector('select[name$="-stock"]');
+                    var stockSelect = lastFormRow.querySelector('.stock');
                     var perPriceInput = lastFormRow.querySelector('input[name$="-perprice"]');
                     var quantityInput = lastFormRow.querySelector('input[name$="-quantity"]');
                     
@@ -269,13 +298,13 @@
                         if (option) {
                             stockSelect.value = option.value; // Set the value of the select element
                             stockSelect.dispatchEvent(new Event('change')); // Trigger the change event
-                            console.log('Stock value set to:', stockSelect.value);
+                            //console.log('Stock value set to:', stockSelect.value);
                         } else {
                             console.error('Option not found with text:', stockText);
                         }
                     }
                     if (perPriceInput) perPriceInput.value = data.price_per_item;
-                    if (quantityInput) quantityInput.focus();
+                    if(quantityInput) quantityInput.focus();
                 } else {
                     console.error("No .form-row elements found within #stockitem.");
                 }

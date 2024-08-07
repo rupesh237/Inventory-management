@@ -66,7 +66,7 @@
             {% endif %}
             {% if delbtn %}
             {% if user.is_staff %}
-                <a href="{% url 'delete-payment' object.pk %}" class="btn  btn-danger"> Delete Receipt </a>
+                <a href="{% url 'delete-payment' object.pk %}" class="btn  btn-danger"> Delete </a>
             {% endif %}
             {% endif %}
             <a href="{% url 'payment' %}" class="btn btn-secondary">Cancel</a>

@@ -60,9 +60,9 @@
                     <td class="align-middle">{{ payment.prepared_by }}</td>
                     <td class="align-middle">{{ payment.date }}</td>
                     <td class="align-middle">
-                        <a href="{% url 'edit-payment' payment.pk %}" class="btn btn-info btn-sm">Edit</a>
+                        <a href="{% url 'edit-payment' payment.pk %}" class="btn btn-info btn-sm"><i class="bi bi-pencil-fill"></i></a>
                         {% if user.is_staff %}
-                        <a href="{% url 'delete-payment' payment.pk %}" class="btn btn-danger btn-sm"> Delete </a>
+                        <a href="{% url 'delete-payment' payment.pk %}" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i></a>
                         {% endif %}
                     </td>          
                 </tr>
