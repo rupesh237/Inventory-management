@@ -56,8 +56,8 @@ class Payment(models.Model):
         # Custom validation to ensure remarks are provided if type is 'Other'
         if self.type == PaymentTypeChoice.OTHER and not self.remarks:
             raise ValidationError({'remarks': 'Remarks must be provided if the receipt type is Other.'})
-        if self.type == PaymentTypeChoice.PURCHASE and not self.purchasebill:
-            raise ValidationError({'remarks': 'PurchaseBill must be provided if the receipt type is Purchase.'})
+        # if self.type == PaymentTypeChoice.PURCHASE and not self.purchasebill:
+        #     raise ValidationError({'remarks': 'PurchaseBill must be provided if the receipt type is Purchase.'})
         
     def make_report(self):
         report, created = Report.objects.get_or_create(
@@ -105,8 +105,8 @@ class Receipt(models.Model):
         # Custom validation to ensure remarks are provided if type is 'Other'
         if self.type == ReceiptTypeChoice.OTHER and not self.remarks:
             raise ValidationError({'remarks': 'Remarks must be provided if the receipt type is Other.'})
-        if self.type == ReceiptTypeChoice.SALE and not self.salebill:
-            raise ValidationError({'remarks': 'Salebill must be provided if the receipt type is Sale.'})
+        # if self.type == ReceiptTypeChoice.SALE and not self.salebill:
+        #     raise ValidationError({'remarks': 'Salebill must be provided if the receipt type is Sale.'})
         
     def make_report(self):
         report, created = Report.objects.get_or_create(

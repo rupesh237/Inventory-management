@@ -270,12 +270,21 @@ def get_customer_details(request):
 
     return JsonResponse(data)
 
+def get_stock_price(request):
+    stock_id = request.GET.get('stock_id')
+    try:
+        stock = Stock.objects.get(id=stock_id)
+        price = stock.price # adjust based on your model field
+    except Stock.DoesNotExist:
+        price = None
+    return JsonResponse({'price': price})
+
 class SaleCreateView(View):                                                      
     template_name = 'sales/new_sale.html'
 
     def get(self, request):
-        form = SaleForm(request.GET or None)
-        formset = SaleItemFormset(request.GET or None)                          # renders an empty formset
+        form = SaleForm()
+        formset = SaleItemFormset()                          # renders an empty formset
         stocks = Stock.objects.filter(is_deleted=False)
         sale_bills = SaleBill.objects.all()
         context = {
@@ -287,9 +296,12 @@ class SaleCreateView(View):
         return render(request, self.template_name, context)
 
     def post(self, request):
+        print(request.POST)
         form = SaleForm(request.POST)
-        formset = SaleItemFormset(request.POST)                                 # recieves a post method for the formset
+        formset = SaleItemFormset(request.POST)   
+        print("Post request")                              # recieves a post method for the formset
         if form.is_valid() and formset.is_valid():
+            print("Validating")
             sale_discount = request.POST['sale-discount']
             # saves bill
             billobj = form.save(commit=False)
@@ -318,11 +330,19 @@ class SaleCreateView(View):
             billdetailsobj.save()
             messages.success(request, "Sold items have been registered successfully")
             return redirect('sale-bill', billno=billobj.billno)
-        form = SaleForm(request.GET or None)
-        formset = SaleItemFormset(request.GET or None)
+        else:
+            print("Form or formset is invalid")
+            print(f"Form errors: {form.errors}")
+            print(f"Formset errors: {formset.errors}")
+        
+        # If the form or formset is not valid, re-render the form with errors
+        stocks = Stock.objects.filter(is_deleted=False)
+        sale_bills = SaleBill.objects.all()
         context = {
             'form'      : form,
             'formset'   : formset,
+            'stocks': stocks,
+            'sale_bills': sale_bills,
         }
         return render(request, self.template_name, context)
 
@@ -455,31 +475,6 @@ class SaleBillView(View):
             'bill_total'    : (SaleBill.objects.get(billno=billno)).get_total_price()
         }
         return render(request, self.template_name, context)
-    
-def scan_barcode(request):
-    if request.method == 'POST':
-        form = BarcodeUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            barcode_image = form.cleaned_data['barcode_image']
-            image = Image.open(barcode_image)
-            decoded_barcodes = decode(image)
-            if decoded_barcodes:
-                barcode_data = decoded_barcodes[0].data.decode('utf-8')
-                product_code = barcode_data[:12]
-                print(product_code)
-                try:
-                    barcode_query = Barcode.objects.filter(product_code=product_code).first()
-                    print(barcode_query)
-                    data = {
-                        'stock': barcode_query.product.name,
-                        'price_per_item': barcode_query.product.price,  # Adjust this according to your model
-                        'barcode': barcode_data
-                    }
-                    return JsonResponse(data)
-                except Stock.DoesNotExist:
-                    return JsonResponse({'error': 'Product not found'}, status=404)
-            return JsonResponse({'error': 'No barcode detected'}, status=400)
-    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 # Global variable to store the scan result
@@ -544,6 +539,7 @@ def start_scan_product(request):
                                 'price_per_item': barcode_query.product.price,
                                 'barcode': barcode_data
                             }
+                            print(scan_result)
                         else:
                             scan_result = {'error': 'Product not found'}
                         break

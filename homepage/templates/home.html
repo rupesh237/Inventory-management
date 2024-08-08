@@ -68,7 +68,7 @@
                     <div class="row">             
                         <div class="col-md-9"> 
                             Bill No: #{{ item.billno }} <br> 
-                            Purchased by <b>{{ item.supplier.name }}</b> <br>
+                            Purchased from <b>{{ item.supplier.name }}</b> <br>
                             <small><i>{{ item.time.date }}</i></small>
                         </div>
                         <div class="col-md-2"> <br>${{ item.get_total_price }} <br> <a href="{% url 'purchase-bill' item.billno %}">View Bill</a> </div>
