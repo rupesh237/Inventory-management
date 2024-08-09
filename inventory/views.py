@@ -11,6 +11,8 @@ from .forms import StockForm
 from django_filters.views import FilterView
 from .filters import StockFilter
 
+from django.apps import apps
+
 
 class StockListView(FilterView):
     filterset_class = StockFilter
@@ -35,8 +37,8 @@ class StockCreateView(SuccessMessageMixin, CreateView):                         
         context = super().get_context_data(**kwargs)
         context["title"] = 'New Stock'
         context["savebtn"] = 'Add to Inventory'
-        return context       
-
+        return context  
+        
 
 class StockUpdateView(SuccessMessageMixin, UpdateView):                                 # updateview class to edit stock, mixin used to display message
     model = Stock                                                                       # setting 'Stock' model as model
@@ -63,8 +65,13 @@ class StockDeleteView(View):                                                    
 
     def post(self, request, pk):  
         stock = get_object_or_404(Stock, pk=pk)
-        stock.is_deleted = True
-        stock.save()                                               
-        messages.success(request, self.success_message)
-        return redirect('inventory')
+        PurchaseItem = apps.get_model('transactions', 'PurchaseItem')
+        SaleItem = apps.get_model('transactions', 'SaleItem')
+        if PurchaseItem.objects.filter(stock=stock).exists() or SaleItem.objects.filter(stock=stock).exists():
+            messages.error(request,"Cannot delete stock item that is referenced in purchases or sales.")
+            return redirect('inventory')
+        else:
+            stock.delete()                                             
+            messages.success(request, self.success_message)
+            return redirect('inventory')
     

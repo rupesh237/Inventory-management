@@ -14,7 +14,7 @@ from django.template.loader import get_template
 from transactions.models import SaleBill, PurchaseBill, SaleBillDetails, PurchaseBillDetails
 from inventory.models import Stock
 
-from .models import Receipt, Payment, Report
+from .models import Receipt, Payment
 
 import datetime
 from django.utils import timezone

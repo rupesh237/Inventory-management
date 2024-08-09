@@ -9,13 +9,15 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 
 from django.utils import timezone
+import tzlocal
+from django.urls import reverse
 
 from django_filters.views import FilterView
 
 from .models import Employee, Payroll
-from .forms import EmployeeForm, PayrollForm, ReceiptForm, PaymentForm
+from .forms import EmployeeForm, PayrollForm, ReceiptForm, PaymentForm, ReceiptBillForm
 
-from report.models import Receipt, Report, Payment
+from report.models import Receipt, ReceiptBill, Payment
 
 from .filters import PayrollFilter
 
@@ -164,9 +166,14 @@ class ReceiptCreateView(SuccessMessageMixin, CreateView):                       
 
         # Set the date field to the current time if not provided
         if not form.cleaned_data.get('date'):
-            form.instance.date = timezone.now()
-
+            local_tz = tzlocal.get_localzone()  # Get the system's local timezone
+            print(local_tz)
+            form.instance.date = timezone.now().astimezone(local_tz)
         return super().form_valid(form)
+    
+    def get_success_url(self):
+        # Redirect to the ReceiptBillView for the newly created receipt
+        return reverse('receipt-bill', kwargs={'receipt_no': self.object.receipt_no})
 
     def form_invalid(self, form):
         # Print form errors to the console for debugging
@@ -186,6 +193,10 @@ class ReceiptUpdateView(SuccessMessageMixin, UpdateView):
         context["savebtn"] = 'Update'
         context["delbtn"] = 'Delete'
         return context
+    
+    def get_success_url(self):
+        # Redirect to the ReceiptBillView for the newly created receipt
+        return reverse('receipt-bill', kwargs={'receipt_no': self.object.receipt_no})
 
 class ReceiptDeleteView(View):                                                            # view class to delete stock
     template_name = "receipt/delete_receipt.html"                                                 # 'delete_stock.html' used as the template
@@ -222,16 +233,12 @@ class PaymentCreateView(SuccessMessageMixin, CreateView):                       
         return context   
     
     def form_valid(self, form):
-        # create report details object
-        reportobj = Report()
-        reportobj.save()
-        form.instance.report = reportobj
         form.instance.prepared_by = self.request.user
 
         # Set the date field to the current time if not provided
         if not form.cleaned_data.get('date'):
-            form.instance.date = timezone.now()
-
+            local_tz = tzlocal.get_localzone()  # Get the system's local timezone
+            form.instance.date = timezone.now().astimezone(local_tz)
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -267,5 +274,58 @@ class PaymentDeleteView(View):                                                  
         payment.delete()                                             
         messages.success(request, self.success_message)
         return redirect('payment') 
+
+
+# used to display the receipt bill object
+class ReceiptBillView(View):
+    model = ReceiptBill
+    template_name = "receipt/bill/receipt_bill.html"
+    bill_base = "receipt/bill/bill_base.html"
+    
+    def get(self, request, receipt_no):
+        receipt = Receipt.objects.get(receipt_no=receipt_no)
+        context = {
+            'bill'          : ReceiptBill.objects.get(receipt=receipt),
+            'bill_base'     : self.bill_base,
+            # 'bill_total'    : (SaleBill.objects.get(billno=billno)).get_total_price()
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, receipt_no):
+        form = ReceiptBillForm(request.POST)
+        if form.is_valid():
+            receipt = Receipt.objects.get(receipt_no=receipt_no)
+            billdetailsobj = ReceiptBill.objects.get(receipt=receipt)
+            
+           # Update billdetailsobj with form data
+            billdetailsobj.eway = form.cleaned_data.get('eway')
+            billdetailsobj.veh = form.cleaned_data.get('veh')
+            billdetailsobj.destination = form.cleaned_data.get('destination')
+            billdetailsobj.po = form.cleaned_data.get('po')
+            billdetailsobj.cgst = form.cleaned_data.get('cgst')
+            billdetailsobj.sgst = form.cleaned_data.get('sgst')
+            billdetailsobj.igst = form.cleaned_data.get('igst')
+            billdetailsobj.cess = form.cleaned_data.get('cess')
+            billdetailsobj.tcs = form.cleaned_data.get('tcs')
+            billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
+            billdetailsobj.total = form.cleaned_data.get('total')
+            billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
+            billdetailsobj.due_amount = form.cleaned_data.get('due_amount', 0)
+
+            if billdetailsobj.paid_amount is None:
+                billdetailsobj.paid_amount = 0.0
+
+            billdetailsobj.save()
+            messages.success(request, "Bill details have been modified successfully")
+        else:
+             # Print form errors to debug
+            print(form.errors)
+            messages.error(request, "Form is Invaid.")
+        context = {
+            'bill'          : ReceiptBill.objects.get(receipt=receipt_no),
+            'bill_base'     : self.bill_base,
+        }
+        return render(request, self.template_name, context)
+
 
 

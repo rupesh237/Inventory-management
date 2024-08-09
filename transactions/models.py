@@ -11,7 +11,7 @@ class Supplier(models.Model):
     phone = models.CharField(max_length=12, unique=True)
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=254, unique=True)
-    gstin = models.CharField(max_length=9, unique=True)
+    vat_no = models.CharField(max_length=9, unique=True)
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -62,19 +62,13 @@ class PurchaseBillDetails(models.Model):
     sgst = models.FloatField(default=0.0, null=True)
     igst = models.FloatField(default=0.0, null=True)
     cess = models.FloatField(default=0.0, null=True)
-    tcs = models.FloatField(default=0.0, null=True)
+    tds = models.FloatField(default=0.0, null=True)
     
     discount_percentage = models.SmallIntegerField(null=True, default=0)
     discount_amount = models.FloatField(default=0.0, null=True)
     total = models.FloatField(default=0.0)
     paid_amount = models.FloatField(default=0.0)
     due_amount = models.FloatField(default=0.0)
-
-    def get_total_amount_with_taxes(self):
-        total = float(self.billno.get_total_price())
-        if not self.discount_amount:
-            self.discount_amount = (float(self.discount_percentage) * total)/100
-        self.total = total + self.cgst - self.discount_amount
 
     def make_payment_report(self):
         Payment = apps.get_model('report', 'Payment')
@@ -124,7 +118,7 @@ class SaleBill(models.Model):
     phone = models.CharField(max_length=12)
     address = models.CharField(max_length=200)
     email = models.EmailField(max_length=254)
-    gstin = models.CharField(max_length=9, null=True)
+    vat_no = models.CharField(max_length=9, null=True)
     
     def get_items_list(self):
         return SaleItem.objects.filter(billno=self)
@@ -163,7 +157,7 @@ class SaleBillDetails(models.Model):
     sgst = models.FloatField(default=0.0, null=True)
     igst = models.FloatField(default=0.0, null=True)
     cess = models.FloatField(default=0.0, null=True)
-    tcs = models.FloatField(default=0.0, null=True)
+    tds = models.FloatField(default=0.0, null=True)
 
     discount_percentage = models.SmallIntegerField(null=True, default=0)
     discount_amount = models.FloatField(default=0.0, null=True)
@@ -175,7 +169,7 @@ class SaleBillDetails(models.Model):
         total = float(self.billno.get_total_price())
         if not self.discount_amount:
             self.discount_amount = (float(self.discount_percentage) * total)/100
-        self.total = total + self.cgst - self.discount_amount
+        self.total = total + self.cgst - self.discount_amount - self.tds
 
     def make_receipt_report(self):
         Receipt = apps.get_model('report', 'Receipt')

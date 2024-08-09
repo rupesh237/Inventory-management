@@ -37,7 +37,7 @@
                     <p> <a href="{% url 'supplier' supplier.name %}">{{ supplier.name }}</a> </p>
                 </td>
                 <td class="align-middle"> {{ supplier.phone }} </td>
-                <td class="align-middle"> {{ supplier.gstin }} </td>
+                <td class="align-middle"> {{ supplier.vat_no }} </td>
                 <td class="align-middle">
                     <div class="align-middle">
                         <a href="{% url 'edit-supplier' supplier.pk %}" class="btn btn-info btn-sm">Edit</a>

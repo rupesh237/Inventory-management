@@ -46,13 +46,13 @@ class PurchaseDetailsForm(forms.ModelForm):
         self.fields['sgst'].required = False
         self.fields['igst'].required = False
         self.fields['cess'].required = False
-        self.fields['tcs'].required = False
+        self.fields['tds'].required = False
         self.fields['discount_amount'].required = False
         self.fields['paid_amount'].required = False
 
     class Meta:
         model = PurchaseBillDetails
-        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'discount_amount', 'total', 'paid_amount', 'due_amount']
+        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tds', 'discount_amount', 'total', 'paid_amount', 'due_amount']
     
 
 # form used for supplier
@@ -62,10 +62,10 @@ class SupplierForm(forms.ModelForm):
         self.fields['name'].widget.attrs.update({'class': 'textinput form-control', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only'})
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
-        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})
+        self.fields['vat_no'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'pattern' : '[0-9]{9}', 'title' : 'VAT NO Format Required'})
     class Meta:
         model = Supplier
-        fields = ['name', 'phone', 'address', 'email', 'gstin']
+        fields = ['name', 'phone', 'address', 'email', 'vat_no']
         widgets = {
             'address' : forms.Textarea(
                 attrs = {
@@ -86,11 +86,11 @@ class SaleForm(forms.ModelForm):
         self.fields['name'].widget.attrs.update({'class': 'form-control', 'id': 'name', 'pattern' : '[a-zA-Z\s]{1,50}', 'title' : 'Alphabets and Spaces only',})
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only', 'required': 'true'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
-        self.fields['gstin'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'GSTIN Format Required'})
+        self.fields['vat_no'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'VAT NO Format Required'})
         self.fields['gstin'].required = False  # Make the field not required
     class Meta:
         model = SaleBill
-        fields = ['name', 'phone', 'address', 'email', 'gstin']
+        fields = ['name', 'phone', 'address', 'email', 'vat_no']
         widgets = {
             'address' : forms.Textarea(
                 attrs = {
@@ -124,13 +124,11 @@ class SaleDetailsForm(forms.ModelForm):
         self.fields['sgst'].required = False
         self.fields['igst'].required = False
         self.fields['cess'].required = False
-        self.fields['tcs'].required = False
+        self.fields['tds'].required = False
         self.fields['discount_amount'].required = False
         self.fields['paid_amount'].required = False
         
     class Meta:
         model = SaleBillDetails
-        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tcs', 'discount_amount', 'total', 'paid_amount', 'due_amount']
+        fields = ['eway','veh', 'destination', 'po', 'cgst', 'sgst', 'igst', 'cess', 'tds', 'discount_amount', 'total', 'paid_amount', 'due_amount']
 
-class BarcodeUploadForm(forms.Form):
-    barcode_image = forms.ImageField()

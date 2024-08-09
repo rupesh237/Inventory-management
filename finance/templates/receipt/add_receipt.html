@@ -6,12 +6,6 @@
 
 
 {% block content %}
-<style>
-    /* Initial CSS to hide the remarks field */
-    .remarks-field {
-        display: none;
-    }
-</style>
 
     <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
     
@@ -27,9 +21,24 @@
             {{ form.paid_by }}
         </div>
         <div class="form-group">
+            {{ form.vat_no.errors }}
+            <label for="{{ form.vat_no.id_for_label }}">PAN/VAT No:</label>
+            {{ form.vat_no }}
+        </div>
+        <div class="form-group">
             {{ form.type.errors }}
             <label for="{{ form.type.id_for_label }}">Type:</label>
             {{ form.type }}
+        </div>
+        <div class="form-group" id="remarks-field">
+            {{ form.remarks.errors }}
+            <label for="{{ form.remarks.id_for_label }}">Remarks:</label>
+            {{ form.remarks }}
+        </div>
+        <div class="form-group">
+            {{ form.description.errors }}
+            <label for="{{ form.description.id_for_label }}">Description:</label>
+            {{ form.description }}
         </div>
         <div class="form-group">
             {{ form.total.errors }}
@@ -45,11 +54,6 @@
             {{ form.due_amount.errors }}
             <label for="{{ form.due_amount.id_for_label }}">Due Amount:</label>
             {{ form.due_amount }}
-        </div>
-        <div class="form-group" id="remarks-field">
-            {{ form.remarks.errors }}
-            <label for="{{ form.remarks.id_for_label }}">Remarks:</label>
-            {{ form.remarks }}
         </div>
         <div class="form-group ">
             {{ form.date.errors }}

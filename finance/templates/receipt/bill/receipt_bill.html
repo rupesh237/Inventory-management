@@ -2,16 +2,16 @@
 {% load static %}
 
 
-{% block title %} Purchases Bill No : {{ bill.billno }}{% endblock title %}
+{% block title %} Receipt No : {{ bill.receipt.receipt_no }}{% endblock title %}
 
 
 {% block content %}
 
-    <div style="color:#575757; font-style: bold; font-size: 3rem;  border-bottom: 1px solid white;">Purchase Bill No : {{ bill.billno }}</div>
+    <div style="color:#575757; font-style: bold; font-size: 3rem;  border-bottom: 1px solid white;">Receipt No : {{ bill.receipt.receipt_no }}</div>
 
     <!-- <br><br> --><!-- Log on to codeastro.com for more projects -->
     
-    <form action="{% url 'purchase-bill' bill.billno %}" method="post" onsubmit="return validateForm()">
+    <form action="{% url 'receipt-bill' bill.receipt.receipt_no %}" method="post" onsubmit="return validateForm()">
     {% csrf_token %}
 
         <div class="bg">
@@ -24,7 +24,7 @@
                     <tbody>
                         
                         <tr style="height: 1px;">
-                            <td> <p style="text-align: center;">TAX INVOICE - PURCHASE</p> </td>
+                            <td> <p style="text-align: center;">TAX INVOICE - {{ bill.receipt.type }}</p> </td>
                         </tr>
                         
                         <tr style="text-align: center;">
@@ -40,18 +40,20 @@
                             <td>
                             <table class="outer-box" style="width: 800px; margin-left: auto; margin-right: auto;">
                                 <tbody>
+                                    {% if bill.receipt.vat_no %}
                                     <tr>
-                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 123456789CASTR0</td>
+                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 619836096</td>
                                     </tr>
+                                    {% endif %}
                                     <tr>
                                         <td class="inner-box" style="width: 50%; font-weight: bold;">&nbsp;NAME OF CONSIGNEE / BUYER</td>
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;INVOICE NO</td>
-                                        <td class="inner-box" style="width: 25%;">&nbsp;{{ bill.billno }}</td>
+                                        <td class="inner-box" style="width: 25%;">&nbsp; {{ bill.receipt.receipt_no }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="inner-box" style="width: 50%;">&nbsp;{{ bill.supplier.name }}</td>
+                                        <td class="inner-box" style="width: 50%;">&nbsp;{{ bill.receipt.paid_by }}</td>
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;DATE</td>
-                                        <td class="inner-box" style="width: 25%;">&nbsp;{{ bill.time.date }}</td>
+                                        <td class="inner-box" style="width: 25%;">&nbsp;{{ bill.receipt.date }}</td>
                                     </tr>
                                     <tr><!-- Log on to codeastro.com for more projects -->
                                         <td class="inner-box" style="width: 50%;" rowspan="3">{{ bill.supplier.address|linebreaks }}</td>
@@ -66,11 +68,15 @@
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;DESTINATION</td>
                                         <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="destination" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.destination %}{{ billdetails.destination }}{% endif %}"> </td>
                                     </tr>
-                                    <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.supplier.vat_no }}</td>
-                                        <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;PO NO &amp; DATE</td>
-                                        <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="po" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.po %}{{ billdetails.po }}{% endif %}"> </td>
-                                    </tr><!-- Log on to codeastro.com for more projects -->
+                                    {% if bill.receipt.vat_no %}
+                                        <tr>
+                                            <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.receipt.vat_no }}</td>
+                                            <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;PO NO &amp; DATE</td>
+                                            <td class="inner-box align-middle" style="width: 25%;">
+                                                <input type="text" name="po" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.po %}{{ billdetails.po }}{% endif %}">
+                                            </td>
+                                        </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                             </td>
@@ -82,24 +88,22 @@
                                 <tbody>
                                     <tr>
                                         <td class="inner-box" style="width: 05%; font-weight: bold; text-align: center;">&nbsp;SL</td>
-                                        <td class="inner-box" style="width: 30%; font-weight: bold; text-align: center;">GOODS</td>
+                                        <td class="inner-box" style="width: 30%; font-weight: bold; text-align: center;">TYPE</td>
                                         <td class="inner-box" style="width: 12%; font-weight: bold; text-align: center;">&nbsp;HSN/SAC</td>
                                         <td class="inner-box" style="width: 12%; font-weight: bold; text-align: center;">QTY MTS</td>
                                         <td class="inner-box" style="width: 12%; font-weight: bold; text-align: center;">RATE PMT</td>
                                         <td class="inner-box" style="width: 12%; font-weight: bold; text-align: center;">AMOUNT $</td>
                                         <td class="inner-box" style="width: 05%; font-weight: bold; text-align: center;">PS</td>
                                     </tr>
-                                    {% for item in items %}
                                         <tr style="height: auto;">
-                                            <td class="inner-box" style="width: 5%;">&nbsp; {{ forloop.counter }}</td>
-                                            <td class="inner-box" style="width: 30%;">&nbsp; {{ item.stock.name }}</td>
+                                            <td class="inner-box" style="width: 5%;">&nbsp; 1</td>
+                                            <td class="inner-box" style="width: 30%;">&nbsp; {{ bill.receipt.type }}</td>
                                             <td class="inner-box" style="width: 12%;">&nbsp;</td>
-                                            <td class="inner-box" style="width: 12%;">&nbsp; {{ item.quantity }}</td>
-                                            <td class="inner-box" style="width: 12%;">&nbsp; {{ item.perprice }}</td>
-                                            <td class="inner-box" style="width: 12%;">&nbsp;{{ item.totalprice }}</td>
+                                            <td class="inner-box" style="width: 12%;">&nbsp; </td>
+                                            <td class="inner-box" style="width: 12%;">&nbsp;</td>
+                                            <td class="inner-box" style="width: 12%;">&nbsp;{{ bill.receipt.total }}</td>
                                             <td class="inner-box" style="width: 5%;">&nbsp;0</td>
                                         </tr>
-                                    {% endfor %}
                                 </tbody>
                             </table>
                             </td>
@@ -112,48 +116,42 @@
                                     <tr>
                                         <td class="inner-box" style="width: 35%; text-align: center;" rowspan="9">
                                             <p> <span style="font-weight: bold;">BANK DETAILS <br> M And MB Soft Tech</span> <br>
-                                                Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p>
+                                                BY CASH
+                                                {% comment %} Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p> {% endcomment %}
                                         </td>
                                         <td class="inner-box" style="width: 30%; font-weight: bold;">&nbsp;VAT @ 13%</td>
-                                        <td class="inner-box align-middle" style="width: 30%;">&nbsp; <input type="text" name="cgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cgst %}{{ billdetails.cgst }}{% endif %}"></td>
+                                        <td class="inner-box align-middle" style="width: 30%;">&nbsp; <input type="text" name="cgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if bill.cgst %}{{ bill.cgst }}{% endif %}"></td>
                                     </tr>
                                     <tr style="display: none;">
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;Total Bill:</td>
                                         <td class="inner-box align-middle">&nbsp;
-                                            <input type="number" name="bill_total" id="bill-total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{{ bill_total }}">
+                                            <input type="number" name="bill_total" id="bill-total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{{ bill.receipt.total }}">
                                         </td>
+                                    </tr>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;TDS @ 1.5%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="tds" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tds %}{{ billdetails.tds }}{% endif %}"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 2.5%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;LOCAL TAX @ 5% </td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="igst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.igst %}{{ billdetails.igst }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="tds" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if bill.tds %}{{ bill.tds }}{% endif %}"></td>
                                     </tr>
                                     <tr><!-- Log on to codeastro.com for more projects -->
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;ANY OTHER CHARGES @  </td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cess %}{{ billdetails.cess }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if bill.cess %}{{ bill.cess }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;DISCOUNT @ {{billdetails.discount_percentage}}%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="discount_amount" id="discount_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.discount_amount %}{{ billdetails.discount_amount }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="discount_amount" id="discount_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if bill.discount_amount %}{{ bill.discount_amount }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;TOTAL</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="total" id="total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.total %}{{ billdetails.total }}{% endif %}"  oninput="updateDueAmount()"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="total" id="total" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if bill.total %}{{ bill.total }}{% endif %}"  oninput="updateDueAmount()"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;PAID</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="paid_amount" id="paid_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.paid_amount %}{{ billdetails.paid_amount }}{% endif %}" oninput="updateDueAmount()"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="paid_amount" id="paid_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if bill.paid_amount %}{{ bill.paid_amount }}{% endif %}" oninput="updateDueAmount()"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;DUE</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="due_amount" id="due_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if billdetails.due_amount %}{{ billdetails.due_amount }}{% endif %}"></td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="due_amount" id="due_amount" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden; font-weight: bold;" value="{% if bill.due_amount %}{{ bill.due_amount }}{% endif %}"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -186,7 +184,7 @@
         <div class="wrapper">
             <button class="center btn btn-primary" onclick="printpage('printArea')">Print</button>
             <button class="center btn btn-success" type="submit">Save Draft</button>
-            <a href="{% url 'purchases-list' %}" class=" btn center btn-secondary">Go Back</a>
+            <a href="{% url 'receipt' %}" class=" btn center btn-secondary">Go Back</a>
         </div><!-- Log on to codeastro.com for more projects -->
 
     </form>
@@ -234,7 +232,8 @@
             console.log("Due:", due);
             document.getElementById('due_amount').value = due.toFixed(2);
         }
-    
+
+
         document.addEventListener('DOMContentLoaded', function() {
             // Ensure all initial values are calculated
             updateDueAmount();
@@ -290,6 +289,43 @@
             attachEvents(igstField, 0.05);
             attachEvents(cessField, 0.0); // Assuming 'ANY OTHER CHARGES' has a variable rate or no default rate
             attachEvents(tdsField, 0.015);
+            
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeField = document.getElementById('type');
+            const remarksField = document.getElementById('remarks-field');
+            const paidField = document.getElementById('id_paid_amount');
+            
+        
+            function updateDueAmount() {
+                var total = parseFloat(document.getElementById('id_total').value) || 0;
+                var paid = parseFloat(document.getElementById('id_paid_amount').value) || 0;
+        
+                console.log("Total:", total);
+                console.log("Paid:", paid);
+        
+                var due = total - paid;
+                console.log("Due:", due);
+                document.getElementById('id_due_amount').value = due.toFixed(2);
+            }
+
+            function toggleRemarksField() {
+                if (typeField.value === 'OTHER') {  // 'OT' corresponds to ReceiptTypeChoice.OTHER
+                    remarksField.style.display = 'block';
+                } else {
+                    remarksField.style.display = 'none';
+                }
+            }
+            // Ensure all initial values are calculated
+            updateDueAmount();
+
+            // Initial check
+            toggleRemarksField();
+
+            // Add event listener to update remarks field visibility on type change
+            paidField.addEventListener('change', updateDueAmount);
+            typeField.addEventListener('change', toggleRemarksField);
         });
     </script>
     

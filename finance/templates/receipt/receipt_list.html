@@ -52,7 +52,11 @@
             {% for receipt in object_list %}
                 <tr>
                     <td class="align-middle">
-                        <p>{{ receipt.receipt_no }}</p>
+                        {% if receipt.salebill %}
+                        <a href="{% url 'sale-bill' receipt.salebill.billno.billno  %}" ><p>{{ receipt.receipt_no }}</p></a>
+                        {% else %}
+                        <a href="{% url 'receipt-bill' receipt.receipt_no  %}" ><p>{{ receipt.receipt_no }}</p></a>
+                        {% endif %}
                     </td>
                     <td class="align-middle">{{ receipt.type }}</td>
                     <td class="align-middle">{{ receipt.paid_by }}</td>

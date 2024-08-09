@@ -27,7 +27,6 @@ from .forms import (
     SaleForm,
     SaleItemFormset,
     SaleDetailsForm,
-    BarcodeUploadForm
 )
 from inventory.models import Stock, Barcode
 from datetime import datetime
@@ -39,17 +38,6 @@ import threading
 import cv2
 from PIL import Image
 from pyzbar.pyzbar import decode
-# import os
-# from ctypes import cdll
-
-# # Ensure the path to the directory containing libzbar-64.dll is in the PATH
-# zbar_path = r'C:\Program Files (x86)\ZBar\bin'
-# os.environ['PATH'] += os.pathsep + zbar_path
-
-# # Load the library explicitly using the absolute path
-# cdll.LoadLibrary(os.path.join(zbar_path, 'libzbar-0.dll'))
-
-
 
 # shows a lists of all suppliers
 class SupplierListView(ListView):
@@ -209,7 +197,6 @@ class PurchaseCreateView(View):
                 billitem.save()
             #create bill details object
             billdetailsobj = PurchaseBillDetails(billno=billobj, discount_percentage=purchase_discount)
-            billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Purchased items have been registered successfully")
             return redirect('purchase-bill', billno=billobj.billno)
@@ -253,7 +240,6 @@ class SaleView(ListView):
 # used to generate a bill object and save items
 def get_customer_details(request):
     name = request.GET.get('name', None)
-    print(name)
     if name:
         try:
             sale_bill = SaleBill.objects.filter(name=name).first()
@@ -261,7 +247,7 @@ def get_customer_details(request):
                 'phone': sale_bill.phone,
                 'email': sale_bill.email,
                 'address': sale_bill.address,
-                'gstin': sale_bill.gstin,
+                'vat_no': sale_bill.vat_no,
             }
         except SaleBill.DoesNotExist:
             data = {'error': 'Customer not found'}
@@ -296,12 +282,9 @@ class SaleCreateView(View):
         return render(request, self.template_name, context)
 
     def post(self, request):
-        print(request.POST)
         form = SaleForm(request.POST)
-        formset = SaleItemFormset(request.POST)   
-        print("Post request")                              # recieves a post method for the formset
+        formset = SaleItemFormset(request.POST)                               # recieves a post method for the formset
         if form.is_valid() and formset.is_valid():
-            print("Validating")
             sale_discount = request.POST['sale-discount']
             # saves bill
             billobj = form.save(commit=False)
@@ -322,10 +305,12 @@ class SaleCreateView(View):
                 billitem.save()
             # create bill details object
             billdetailsobj = SaleBillDetails(billno=billobj, discount_percentage=sale_discount)
-            if billobj.gstin is not None:
+            if billobj.vat_no is not None:
                 billdetailsobj.cgst = 0.13 * billobj.get_total_price()
+                billdetailsobj.tds = 0.015 * billobj.get_total_price()
             else:
                 billdetailsobj.cgst = 0.0
+                billdetailsobj.tds = 0.0
             billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Sold items have been registered successfully")
@@ -397,7 +382,7 @@ class PurchaseBillView(View):
             billdetailsobj.sgst = form.cleaned_data.get('sgst')
             billdetailsobj.igst = form.cleaned_data.get('igst')
             billdetailsobj.cess = form.cleaned_data.get('cess')
-            billdetailsobj.tcs = form.cleaned_data.get('tcs')
+            billdetailsobj.tds = form.cleaned_data.get('tds')
             billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
             billdetailsobj.total = form.cleaned_data.get('total')
             billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)
@@ -452,7 +437,7 @@ class SaleBillView(View):
             billdetailsobj.sgst = form.cleaned_data.get('sgst')
             billdetailsobj.igst = form.cleaned_data.get('igst')
             billdetailsobj.cess = form.cleaned_data.get('cess')
-            billdetailsobj.tcs = form.cleaned_data.get('tcs')
+            billdetailsobj.tds = form.cleaned_data.get('tds')
             billdetailsobj.discount_amount = form.cleaned_data.get('discount_amount')
             billdetailsobj.total = form.cleaned_data.get('total')
             billdetailsobj.paid_amount = form.cleaned_data.get('paid_amount', 0)

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from transactions.models import SaleBillDetails, PurchaseBillDetails
 from finance.models import Payroll
 
-from transactions.models import Supplier
+from django.apps import apps
 
 # Create your models here.
 class PaymentTypeChoice(models.TextChoices):
@@ -25,23 +25,12 @@ class ReceiptTypeChoice(models.TextChoices):
     DUE = "DUE", _("Due")
     OTHER = "OTHER", _("Other")
 
-class Report(models.Model):
-    report_no = models.AutoField(primary_key=True)
-    REPORT_TYPE = (
-         ('payment', 'PAYMENT'),
-         ('receipt', 'RECEIPT'),
-         ('supplier', 'SUPPLIER'),
-    )
-    type = models.CharField(max_length=10, choices=REPORT_TYPE, default='pay')
-
-    def __str__(self):
-        return f"{self.report_no}"
 
 class Payment(models.Model):
-    report = models.ForeignKey(Report, on_delete=models.DO_NOTHING, null=True, related_name="paymentreport")
     payment_no = models.AutoField(primary_key=True)
     type = models.CharField(max_length=25, choices=PaymentTypeChoice.choices, default=PaymentTypeChoice.EXPENSE)
     remarks = models.TextField(max_length=255, blank=True, null=True)
+    description = models.TextField(max_length=255, blank=True, null=True)
     paid_to = models.CharField(max_length=50)
     prepared_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     total = models.FloatField()
@@ -56,30 +45,10 @@ class Payment(models.Model):
         # Custom validation to ensure remarks are provided if type is 'Other'
         if self.type == PaymentTypeChoice.OTHER and not self.remarks:
             raise ValidationError({'remarks': 'Remarks must be provided if the receipt type is Other.'})
-        # if self.type == PaymentTypeChoice.PURCHASE and not self.purchasebill:
-        #     raise ValidationError({'remarks': 'PurchaseBill must be provided if the receipt type is Purchase.'})
-        
-    def make_report(self):
-        report, created = Report.objects.get_or_create(
-            report_no=self.report.report_no if self.report else None,
-            defaults={
-                'type': "PAYMENT",
-            }
-        )
-        if created:
-            self.report = report
-        else:
-            # If the report already exists, update the necessary fields
-            report.type = "PAYMENT"
-            report.save()
-            self.report = report
-
 
     def save(self, *args, **kwargs):
         self.clean()
-        # create report details object
         super().save(*args, **kwargs)
-        self.make_report()
         
     def __str__(self):
         return f"{self.payment_no}: {self.type}"
@@ -88,11 +57,12 @@ class Payment(models.Model):
         ordering = ['-date'] 
 
 class Receipt(models.Model):
-    report = models.ForeignKey(Report, on_delete=models.DO_NOTHING, null=True, related_name="receiptreport")
     receipt_no = models.AutoField(primary_key=True)
     type = models.CharField(max_length=25, choices=ReceiptTypeChoice.choices, default=ReceiptTypeChoice.SALE)
     remarks = models.TextField(max_length=255, blank=True, null=True)
+    description = models.TextField(max_length=255, blank=True, null=True)
     paid_by = models.CharField(max_length=50)
+    vat_no = models.CharField(max_length=9, null=True)
     prepared_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     total = models.FloatField()
     paid_amount = models.FloatField(default=0.0)
@@ -105,28 +75,46 @@ class Receipt(models.Model):
         # Custom validation to ensure remarks are provided if type is 'Other'
         if self.type == ReceiptTypeChoice.OTHER and not self.remarks:
             raise ValidationError({'remarks': 'Remarks must be provided if the receipt type is Other.'})
-        # if self.type == ReceiptTypeChoice.SALE and not self.salebill:
-        #     raise ValidationError({'remarks': 'Salebill must be provided if the receipt type is Sale.'})
         
-    def make_report(self):
-        report, created = Report.objects.get_or_create(
-            report_no=self.report.report_no if self.report else None,
+    def make_receipt_bill(self):
+        ReceiptBill = apps.get_model('report', 'ReceiptBill')
+        receiptbill, created = ReceiptBill.objects.get_or_create(
+            receipt=self,
             defaults={
-                'type': "RECEIPT",
+                'total': self.total,
+                'paid_amount': self.paid_amount,
+                'due_amount': self.due_amount,
             }
         )
+        # If the ReceiptBill was created for the first time
         if created:
-            self.report = report
+            # If VAT number is provided, calculate the taxes
+            receiptbill.paid_amount = self.paid_amount
+            if self.vat_no:
+                receiptbill.get_total_amount_with_taxes()
+            else:
+                receiptbill.total = self.total
+                receiptbill.due_amount = self.due_amount
+
+            receiptbill.save()
         else:
-            # If the report already exists, update the necessary fields
-            report.type = "RECEIPT"
-            report.save()
-            self.report = report
+            # If the ReceiptBill already exists, update the necessary fields
+            receiptbill.paid_amount = self.paid_amount
+            if self.vat_no:
+                receiptbill.get_total_amount_with_taxes()
+            else:
+                receiptbill.total = self.total
+                receiptbill.due_amount = self.due_amount
+            receiptbill.save()
 
     def save(self, *args, **kwargs):
-        self.clean()
+        # Ensure the related SaleBill is saved first
+        if not self:
+            raise ValueError("Cannot create Bill without a saved Receipt instance.")
         super().save(*args, **kwargs)
-        self.make_report()
+        if not self.salebill:
+            self.make_receipt_bill()
+
         
     def __str__(self):
         return f"{self.receipt_no}: {self.type}"
@@ -134,7 +122,35 @@ class Receipt(models.Model):
     class Meta:
         ordering = ['-date'] 
 
-class SupplierReport(models.Model):
-    supplier = models.ForeignKey(Supplier, on_delete=models.DO_NOTHING)
+#contains the other details in the purchases bill
+class ReceiptBill(models.Model):
+    receipt = models.ForeignKey(Receipt, on_delete = models.CASCADE, related_name='receipt')
+    
+    eway = models.CharField(max_length=50, blank=True, null=True)    
+    veh = models.CharField(max_length=50, blank=True, null=True)
+    destination = models.CharField(max_length=50, blank=True, null=True)
+    po = models.CharField(max_length=50, blank=True, null=True)
+    
+    cgst = models.FloatField(default=0.0, null=True)
+    sgst = models.FloatField(default=0.0, null=True)
+    igst = models.FloatField(default=0.0, null=True)
+    cess = models.FloatField(default=0.0, null=True)
+    tds = models.FloatField(default=0.0, null=True)
+    
+    discount_amount = models.FloatField(default=0.0, null=True)
+    total = models.FloatField(default=0.0)
+    paid_amount = models.FloatField(default=0.0)
+    due_amount = models.FloatField(default=0.0)
+
+    def get_total_amount_with_taxes(self):
+        total = float(self.receipt.total)
+        self.cgst = 0.13 * total
+        self.tds = 0.015 * total
+
+        self.total = total + self.cgst - self.tds
+        self.due_amount = self.total - self.paid_amount
+
+    def __str__(self):
+	    return "Receipt no: " + str(self.receipt.receipt_no)
 
     

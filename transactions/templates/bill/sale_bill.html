@@ -40,9 +40,11 @@
                             <td>
                             <table class="outer-box" style="width: 800px; margin-left: auto; margin-right: auto;">
                                 <tbody>
+                                    {% if bill.vat_no %}
                                     <tr>
                                         <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 619836096</td>
                                     </tr>
+                                    {% endif %}
                                     <tr>
                                         <td class="inner-box" style="width: 50%; font-weight: bold;">&nbsp;NAME OF CONSIGNEE / BUYER</td>
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;INVOICE NO</td>
@@ -66,11 +68,16 @@
                                         <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;DESTINATION</td>
                                         <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="destination" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.destination %}{{ billdetails.destination }}{% endif %}"> </td>
                                     </tr>
-                                    <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.gstin }}</td>
-                                        <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;PO NO &amp; DATE</td>
-                                        <td class="inner-box align-middle" style="width: 25%;"> <input type="text" name="po" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.po %}{{ billdetails.po }}{% endif %}"> </td>
-                                    </tr><!-- Log on to codeastro.com for more projects -->
+                                    {% if bill.vat_no %}
+                                        <tr>
+                                            <td class="inner-box" style="font-weight: bold;">&nbsp;PAN/VAT No : {{ bill.vat_no }}</td>
+                                            <td class="inner-box" style="width: 25%; font-weight: bold;">&nbsp;PO NO &amp; DATE</td>
+                                            <td class="inner-box align-middle" style="width: 25%;">
+                                                <input type="text" name="po" class="align-middle" style="border: 0; overflow: hidden;" value="{% if billdetails.po %}{{ billdetails.po }}{% endif %}">
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+
                                 </tbody>
                             </table>
                             </td>
@@ -125,6 +132,10 @@
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td class="inner-box" style="font-weight: bold;">&nbsp;TDS @ 1.5%</td>
+                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="tds" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tds %}{{ billdetails.tds }}{% endif %}"></td>
+                                    </tr>
+                                    <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;EXERCISE TAX @ 2.5%</td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="sgst" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.sgst %}{{ billdetails.sgst }}{% endif %}"></td>
                                     </tr>
@@ -135,10 +146,6 @@
                                     <tr><!-- Log on to codeastro.com for more projects -->
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;ANY OTHER CHARGES @  </td>
                                         <td class="inner-box align-middle">&nbsp; <input type="number" name="cess" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.cess %}{{ billdetails.cess }}{% endif %}"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="inner-box" style="font-weight: bold;">&nbsp;TCS @ 1%</td>
-                                        <td class="inner-box align-middle">&nbsp; <input type="number" name="tcs" class="align-middle" pattern="[0-9]+\.[0-9]+" style="border: 0; overflow: hidden;" value="{% if billdetails.tcs %}{{ billdetails.tcs }}{% endif %}"></td>
                                     </tr>
                                     <tr>
                                         <td class="inner-box" style="font-weight: bold;">&nbsp;DISCOUNT @ {{billdetails.discount_percentage}}%</td>
@@ -247,7 +254,7 @@
             var sgstField = document.querySelector('input[name="sgst"]');
             var igstField = document.querySelector('input[name="igst"]');
             var cessField = document.querySelector('input[name="cess"]');
-            var tcsField = document.querySelector('input[name="tcs"]');
+            var tdsField = document.querySelector('input[name="tds"]');
             var discountField = document.querySelector('input[name="discount_amount"]');
 
             function calculateField(field, percentage) {
@@ -268,9 +275,9 @@
                 var sgstValue = parseFloat(sgstField.value) || 0; // Default to 0 if empty or invalid
                 var igstValue = parseFloat(igstField.value) || 0; // Default to 0 if empty or invalid
                 var cessValue = parseFloat(cessField.value) || 0; // Default to 0 if empty or invalid
-                var tcsValue = parseFloat(tcsField.value) || 0; // Default to 0 if empty or invalid
+                var tdsValue = parseFloat(tdsField.value) || 0; // Default to 0 if empty or invalid
                 var discountValue = parseFloat(discountField.value) || 0;
-                var updatedTotalAmount = totalAmount + cgstValue + sgstValue + igstValue + cessValue + tcsValue - discountValue;
+                var updatedTotalAmount = totalAmount + cgstValue + sgstValue + igstValue + cessValue - tdsValue - discountValue;
                 console.log("updatedTotalAmount:", updatedTotalAmount);
                 document.getElementById('total').value = updatedTotalAmount.toFixed(2);
             }
@@ -291,9 +298,9 @@
             attachEvents(sgstField, 0.025);
             attachEvents(igstField, 0.05);
             attachEvents(cessField, 0.0); // Assuming 'ANY OTHER CHARGES' has a variable rate or no default rate
-            attachEvents(tcsField, 0.01);
-            
+            attachEvents(tdsField, 0.015);
         });
+
     </script>
     
 

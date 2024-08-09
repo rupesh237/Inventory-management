@@ -6,12 +6,6 @@
 
 
 {% block content %}
-<style>
-    /* Initial CSS to hide the remarks field */
-    .remarks-field {
-        display: none;
-    }
-</style>
 
     <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">{{title}}</div> 
     
@@ -31,6 +25,11 @@
             {{ form.type.errors }}
             <label for="{{ form.type.id_for_label }}">Type:</label>
             {{ form.type }}
+        </div>
+        <div class="form-group">
+            {{ form.description.errors }}
+            <label for="{{ form.description.id_for_label }}">Description:</label>
+            {{ form.description }}
         </div>
         <div class="form-group">
             {{ form.total.errors }}

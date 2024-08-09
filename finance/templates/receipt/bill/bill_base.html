@@ -1,51 +1,44 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    <!-- Required meta tags -->
+    <!-- Required meta tags --><!-- Log on to codeastro.com for more projects -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/bootstrap.min.css' %}">
 
-    <!-- Main CSS, then Sidebar CSS and Dialog Box CSS -->
-    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">    
-    <link rel="stylesheet" type="text/css" href="{% static 'css/sidebar.css' %}">    
-    <link rel="stylesheet" type="text/css" href="{% static 'css/dialogbox.css' %}">    
-    <link rel="stylesheet" href="{% static 'bootstrap-icons/bootstrap-icons.css' %}">
+    <!-- font awesome cdn -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
+    <!-- Main CSS, then Sidebar CSS, Bill CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">    
+    <link rel="stylesheet" type="text/css" href="{% static 'css/sidebar.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bill.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-icons/bootstrap-icons.css' %}">
+    
     <title>IMS - {% block title %}Title Missing{% endblock title %}</title>
 
 </head>
-<body>
 
-    <!-- Dialog Box CSS  -->
-    <div id="dialogoverlay"></div>
-    <div id="dialogbox">
-        <div class="align-middle">
-            <div id="dialogboxhead"></div>
-            <div id="dialogboxbody"></div>
-            <div id="dialogboxfoot"></div>
-        </div>
-    </div>
+<body class="bg">
 
     <main id="wrapper">
-    
-    {% if user.is_authenticated %}
     
         <nav id="sidebar">
             
             <div class="sidebar-header">
-                <a class="navbar-brand titlefont mr-4" href="{% url 'home' %}"><h3>MB Soft Tech </h3></a>
+                <a class="navbar-brand titlefont mr-4" href="{% url 'home' %}"><h3>MB Soft Tech</h3></a>
             </div>
 
             <ul class="list-unstyled sidebar-components">
                 {# <p class="sidebar-paragraph">Dummy Heading</p> #}
-                <li> 
-                    <a class="sidebar-text sidebar-button" href="{% url 'home' %}"><i class="bi bi-house"></i> Home</a>
+                <li>
+                    <a class="sidebar-text sidebar-button" href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a>
                 </li>               
                 <li>
                     <a href="#inventorySubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="bi bi-bank2"></i> Inventory</a>
@@ -92,6 +85,7 @@
                 </li><!-- Log on to codeastro.com for more projects -->
 
                 <li class="bottomleft">
+                    {% if user.is_authenticated %}
                     <a href="#UserSubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="fas fa-user-circle"></i> {{ request.user.username }}</a>
                     <ul class="collapse list-unstyled" id="UserSubmenu">
                         {% if request.user.is_superuser %}
@@ -99,47 +93,27 @@
                         {% endif %}
                             <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'logout' %}"><i class="fas fa-dot-circle"></i> Logout</a> </li>
                     </ul>
-                </li>
-
-            </ul>
-            {% comment %}
-            <ul class="list-unstyled CTAs">
-                <li>
-                    <a href="#" class="sidebar-button nav-button">Button</a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-text">Link</a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="sidebar-text sidebar-button">Not Logged in</a>
+                    {% endif %}
                 </li>
             </ul>
-            {% endcomment %}
-
         </nav>
     
-        <div id="content">
+        <div id="content" class="bg-white">
 
             <div class="row">
                 <div class="col-md-12">
-                
+                                    
                     {% if messages %}
                         {% for message in messages %}
-                            {% if message.tags == 'error' %}
-                                <div class="alert alert-danger"> {{ message }} </div>
-                            {% elif message.tags == 'warning' %}
-                                <div class="alert alert-warning"> {{ message }} </div>
-                            {% elif message.tags == 'info' %}
-                                <div class="alert alert-info"> {{ message }} </div>
-                            {% elif message.tags == 'success' %}
-                                <div class="alert alert-success"> {{ message }} </div>
-                            {% else %}
-                                <div class="alert alert-secondary"> {{ message }} </div>
-                            {% endif %}
+                            <div class="alert alert-{{ message.tags }}"> {{ message }} </div>
                         {% endfor %}
                     {% endif %}
-    {% endif %} 
-
+                    
                     <div class="container">
                         {% block content %}{% endblock content %}
-                    </div>
+                    </div><!-- Log on to codeastro.com for more projects -->
                     
                 </div>
             </div>

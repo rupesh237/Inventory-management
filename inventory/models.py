@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from barcode import EAN13
 from barcode.writer import ImageWriter
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
