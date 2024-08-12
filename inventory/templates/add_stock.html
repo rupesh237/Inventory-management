@@ -15,6 +15,15 @@
         {% csrf_token %}
         {{ form.non_field_errors }}
 
+        {% if form.name.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.name.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+
         <div class="form-group">
             {{ form.category.errors }}
             <label for="{{ form.category.id_for_label }}">Category:</label>
@@ -22,16 +31,8 @@
         </div> 
         <div class="form-group">
             <label for="{{ form.name.id_for_label }}">Name:</label>
-            {% if form.name.errors %}
-                <div class="alert alert-danger">
-                    {% for error in form.name.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
             {{ form.name }}
         </div>
-        
         <div class="form-group">
             <label for="{{ form.placed_at.id_for_label }}">Placed At:</label>
             {% if form.placed_at.errors %}

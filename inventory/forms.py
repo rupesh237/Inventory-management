@@ -23,14 +23,13 @@ class StockForm(forms.ModelForm):
     def clean_placed_at(self):
         placed_at = self.cleaned_data.get('placed_at')
         if placed_at and Stock.objects.filter(placed_at=placed_at).exists():
-            raise ValidationError(f"A stock item placed at '{placed_at}' already exists.")
+            raise ValidationError(f"A stock item is already placed at '{placed_at}'.")
         return placed_at
        
     def save(self, commit=True):
         instance = super().save(commit=False)
         if self.request and self.request.user:
             instance.created_by = self.request.user
-            print(instance.created_by)
         if commit:
             instance.save()
         if not Barcode.objects.filter(product=instance).exists():

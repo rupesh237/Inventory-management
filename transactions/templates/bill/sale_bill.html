@@ -29,10 +29,10 @@
                         
                         <tr style="text-align: center;">
                             <td >
-                                <span style="font-size: 350%;">M & MB Soft Tech </span> <br>
+                                <span style="font-size: 350%;">{{company.name}}</span> <br>
                                 <span style="font-size: 120%; font-weight: bold;">DEALERS IN : Products</span> <br>
-                                <span style="font-weight: bold;">REGD ADDRESS :</span> Siddhartha Street<br>New Baneshwor-10, Kathmandu<br>
-                                <span style="font-weight: bold;">EMAIL : info@mbsoftech.com.np</span> <br><br>
+                                <span style="font-weight: bold;">REGD ADDRESS :</span> <br>{{company.address}}<br>
+                                <span style="font-weight: bold;">EMAIL : {{company.email}}</span><br><br>
                             </td><!-- Log on to codeastro.com for more projects -->
                         </tr>
                         
@@ -42,7 +42,7 @@
                                 <tbody>
                                     {% if bill.vat_no %}
                                     <tr>
-                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - 619836096</td>
+                                        <td class="inner-box" style="text-align: center; font-weight: bold;" colspan="3">PAN/VAT NO - {{company.pan_no}}</td>
                                     </tr>
                                     {% endif %}
                                     <tr>
@@ -118,7 +118,7 @@
                                 <tbody>
                                     <tr>
                                         <td class="inner-box" style="width: 35%; text-align: center;" rowspan="9">
-                                            <p> <span style="font-weight: bold;">BANK DETAILS <br> M And MB Soft Tech</span> <br>
+                                            <p> <span style="font-weight: bold;">BANK DETAILS <br>{{company.name}}</span> <br>
                                                 BY CASH
                                                 {% comment %} Rastriya Banijya Bank <br> AC NO-1234 XXXX TECH XXXX <br> BANK CODE - ABCD 010 0110 <br> NEW BANESHWOR BRANCH <br> PH NO - 9854-010-040</p> {% endcomment %}
                                         </td>

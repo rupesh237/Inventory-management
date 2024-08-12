@@ -3,15 +3,15 @@
 {% load widget_tweaks %}
 
 
-{% block title %} Suppliers List {% endblock title %}
+{% block title %} Branches List {% endblock title %}
 
 
 {% block content %}
     
     <div class="row" style="color: #575757; font-style: bold; font-size: 3rem;">
-        <div class="col-md-8">Suppliers List</div>
+        <div class="col-md-8">Branches List</div>
         <div class="col-md-4">       <!-- Log on to codeastro.com for more projects -->        
-            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-supplier' %}">Add New Supplier</a> </div>
+            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-branch' %}">Add New Branch</a> </div>
         </div>
     </div>
 
@@ -23,7 +23,8 @@
             <tr>
                 <th width="25%">Name</th>
                 <th width="20%">Contact</th>
-                <th width="25%">PAN/VAT No</th>
+                <th width="20%">Email</th>
+                <th width="25%">Address</th>
                 <th width="30%">Actions</th>
             </tr>
         </thead>
@@ -31,18 +32,19 @@
 {% if object_list %}
 
         <tbody>
-            {% for supplier in object_list %}
+            {% for branch in object_list %}
             <tr>
-                <td><!-- Log on to codeastro.com for more projects -->
-                    <p> <a href="{% url 'supplier' supplier.name %}">{{ supplier.name }}</a> </p>
+                <td class="align-middle"><!-- Log on to codeastro.com for more projects -->
+                    {{ branch.name }}
                 </td>
-                <td class="align-middle"> {{ supplier.phone }} </td>
-                <td class="align-middle"> {{ supplier.vat_no }} </td>
+                <td class="align-middle"> {{ branch.phone_number }} </td>
+                <td class="align-middle"> {{ branch.email }} </td>
+                <td class="align-middle"> {{ branch.address }} </td>
                 <td class="align-middle">
                     <div class="align-middle">
-                        <a href="{% url 'edit-supplier' supplier.pk %}" class="btn btn-info btn-sm"><i class="bi bi-pencil-fill"></i></a>
+                        <a href="{% url 'edit-branch' branch.pk %}" class="btn btn-info btn-sm"><i class="bi bi-pencil-fill"></i></a>
                         {% if user.is_staff %}
-                        <a href="{% url 'delete-supplier' supplier.pk %}" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i></a>
+                        <a href="{% url 'delete-branch' branch.pk %}" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i></a>
                         {% endif %}
                     </div>
                 </td>              

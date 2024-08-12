@@ -1,7 +1,14 @@
-from django.shortcuts import render
-from django.views.generic import View, TemplateView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import View, TemplateView, ListView, CreateView, UpdateView
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
+
 from inventory.models import Stock
 from transactions.models import SaleBill, PurchaseBill, SaleItem, PurchaseItem
+
+from .models import Company, Branch
+from .forms import BranchForm
+
 import datetime
 from django.utils import timezone
 
@@ -60,6 +67,7 @@ class HomeView(View):
             data.append(item.quantity)
         sales = SaleBill.objects.order_by('-time')[:3]
         purchases = PurchaseBill.objects.order_by('-time')[:3]
+
         context = {
             'labels'    : labels,
             'data'      : data,
@@ -72,3 +80,61 @@ class HomeView(View):
 
 class AboutView(TemplateView):
     template_name = "about.html"
+
+class BranchListView(ListView):
+    model = Branch
+    template_name = "branch/branch_list.html"
+    queryset = Branch.objects.all()
+    paginate_by = 10
+
+
+# used to add a new supplier
+class BranchCreateView(SuccessMessageMixin, CreateView):
+    model = Branch
+    form_class = BranchForm
+    success_url = '/branches'
+    success_message = "Branch has been created successfully."
+    template_name = "branch/edit_branch.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = 'New Branch'
+        context["savebtn"] = 'Add Branch'
+        return context   
+
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
+
+
+class BranchUpdateView(SuccessMessageMixin, UpdateView):
+    model = Branch
+    form_class = BranchForm
+    success_url = '/branches'
+    success_message = "Branch details has been updated successfully"
+    template_name = "branch/edit_branch.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = 'Edit Branch'
+        context["savebtn"] = 'Save Changes'
+        context["delbtn"] = 'Delete Branch'
+        return context
+
+
+# used to delete a supplier
+class BranchDeleteView(View):
+    template_name = "branch/delete_branch.html"
+    success_message = "Branch has been deleted successfully."
+
+    def get(self, request, pk):
+        branch = get_object_or_404(Branch, pk=pk)
+        return render(request, self.template_name, {'object' : branch})
+
+    def post(self, request, pk):  
+        branch = get_object_or_404(Branch, pk=pk)
+        branch.delete()                                               
+        messages.success(request, self.success_message)
+        return redirect('branch-list')

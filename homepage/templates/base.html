@@ -39,7 +39,7 @@
         <nav id="sidebar">
             
             <div class="sidebar-header">
-                <a class="navbar-brand titlefont mr-4" href="{% url 'home' %}"><h3>MB Soft Tech </h3></a>
+                <a class="navbar-brand titlefont mr-4 sidebar-company" href="{% url 'home' %}"><h3>{{company.name}}</h3></a>
             </div>
 
             <ul class="list-unstyled sidebar-components">
@@ -92,12 +92,13 @@
                 </li><!-- Log on to codeastro.com for more projects -->
 
                 <li class="bottomleft">
-                    <a href="#UserSubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="fas fa-user-circle"></i> {{ request.user.username }}</a>
+                    <a href="#UserSubmenu" data-toggle="collapse" class="dropdown-toggle sidebar-text right-arrow sidebar-button"><i class="bi bi-person-circle"></i> {{ request.user.username }}</a>
                     <ul class="collapse list-unstyled" id="UserSubmenu">
                         {% if request.user.is_superuser %}
-                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'admin:index' %}"><i class="fas fa-dot-circle"></i> Admin Page</a> </li>
+                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'admin:index' %}"><i class="bi bi-person-gear"></i> Admin Page</a> </li>
+                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'branch-list' %}"><i class="bi bi-houses"></i> Branches</a> </li>
                         {% endif %}
-                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'logout' %}"><i class="fas fa-dot-circle"></i> Logout</a> </li>
+                            <li> <a class="sidebar-text sidebar-subitem sidebar-button" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a> </li>
                     </ul>
                 </li>
 

@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import formset_factory
+from django.core.exceptions import ValidationError
+
 from .models import (
     Supplier, 
     PurchaseBill, 
@@ -87,7 +89,7 @@ class SaleForm(forms.ModelForm):
         self.fields['phone'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}', 'title' : 'Numbers only', 'required': 'true'})
         self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['vat_no'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'min': '9', 'pattern' : '[0-9]{9}', 'title' : 'VAT NO Format Required'})
-        self.fields['gstin'].required = False  # Make the field not required
+        self.fields['vat_no'].required = False  # Make the field not required
     class Meta:
         model = SaleBill
         fields = ['name', 'phone', 'address', 'email', 'vat_no']

@@ -10,6 +10,7 @@ from django.views.generic import (
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Sum
 from .models import (
     PurchaseBill, 
     Supplier, 
@@ -98,8 +99,19 @@ class SupplierDeleteView(View):
 # used to view a supplier's profile
 class SupplierView(View):
     def get(self, request, name):
+        overall_total_amount = 0
+        overall_total_due_amount = 0
         supplierobj = get_object_or_404(Supplier, name=name)
         bill_list = PurchaseBill.objects.filter(supplier=supplierobj)
+        for bill in bill_list:
+           # Calculate the total amount and due amount for each bill
+            purchase_details = PurchaseBillDetails.objects.filter(billno=bill).aggregate(
+                total_amount=Sum('total'),
+                total_due_amount=Sum('due_amount')
+            )
+            # Add to the overall totals
+            overall_total_amount += purchase_details['total_amount'] or 0
+            overall_total_due_amount += purchase_details['total_due_amount'] or 0
         page = request.GET.get('page', 1)
         paginator = Paginator(bill_list, 10)
         try:
@@ -110,7 +122,9 @@ class SupplierView(View):
             bills = paginator.page(paginator.num_pages)
         context = {
             'supplier'  : supplierobj,
-            'bills'     : bills
+            'bills'     : bills,
+            'overall_total_amount': overall_total_amount,
+            'overall_total_due_amount': overall_total_due_amount,
         }
         return render(request, 'suppliers/supplier.html', context)
 
@@ -359,6 +373,7 @@ class PurchaseBillView(View):
     bill_base = "bill/bill_base.html"
 
     def get(self, request, billno):
+
         context = {
             'bill'          : PurchaseBill.objects.get(billno=billno),
             'items'         : PurchaseItem.objects.filter(billno=billno),
@@ -414,6 +429,7 @@ class SaleBillView(View):
     bill_base = "bill/bill_base.html"
     
     def get(self, request, billno):
+
         context = {
             'bill'          : SaleBill.objects.get(billno=billno),
             'items'         : SaleItem.objects.filter(billno=billno),
