@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 from barcode import EAN13
 from barcode.writer import ImageWriter
 
+from homepage.models import Branch
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -26,6 +28,8 @@ class Stock(models.Model):
     quantity = models.IntegerField(default=1)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     is_deleted = models.BooleanField(default=False)
+
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True)
 
     UNIT_CHOICES = (
          ('kg', 'KILOGRAM'),

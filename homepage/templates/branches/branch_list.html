@@ -35,7 +35,7 @@
             {% for branch in object_list %}
             <tr>
                 <td class="align-middle"><!-- Log on to codeastro.com for more projects -->
-                    {{ branch.name }}
+                    <a href="{% url 'branch_profile' branch.name %}">{{ branch.name }}</a>
                 </td>
                 <td class="align-middle"> {{ branch.phone_number }} </td>
                 <td class="align-middle"> {{ branch.email }} </td>

@@ -109,9 +109,8 @@ class SupplierView(View):
                 total_amount=Sum('total'),
                 total_due_amount=Sum('due_amount')
             )
-            # Add to the overall totals
-            overall_total_amount += purchase_details['total_amount'] or 0
-            overall_total_due_amount += purchase_details['total_due_amount'] or 0
+            overall_total_amount += purchase_details['total_amount']
+            overall_total_due_amount += purchase_details['total_due_amount']
         page = request.GET.get('page', 1)
         paginator = Paginator(bill_list, 10)
         try:

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  {{ branch.name }}'s profile
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="content-section">
+        <div class="media"><!-- Log on to codeastro.com for more projects -->
+            <div class="media-body">
+                <h2 style="color:#575757;" class="account-heading">&nbsp;{{ branch.name }}</h2>
+                <a href="{% url 'edit-branch' branch.pk %}" class="btn btn-info" style="float: right;">Edit Details</a>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="fal">
+                            <b>Contact &nbsp; &nbsp;&nbsp; :</b> {{ branch.phone_number }} <br>
+                            <b>Email Id &nbsp;&nbsp;&nbsp;&nbsp; :</b> {{ branch.email }} <br>
+                            <b>Postal Code &nbsp; :</b> {{ branch.postal_code}} <br>
+                            <b>Established Date &nbsp; :</b> {{ branch.established_date}} <br>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="fal">
+                            <b>Address:</b> <br> {{ branch.address|linebreaks }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <div class="container"> 
+        <div style="float:right; padding: 5px;">
+            <a class="btn btn-success" href="{% url 'add-user' branch.pk %}">Add New User</a>
+        </div>
+    </div>
+
+    <table class="table table-css table-hover table-bordered">
+        
+        <br>
+        
+        <thead class="thead-dark align-middle">
+            <tr>
+                <th width="10%">User Name</th>
+                <th width="15%">Email</th>
+                <th width="15%">Status</th>
+                <th width="30%">Actions</th>
+            </tr><!-- Log on to codeastro.com for more projects -->
+        </thead>
+      
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td class="align-middle"> <p>{{ user.user.username }}</p> </td>
+                <td class="align-middle">{{ user.user.email }}</td>
+                <td class="align-middle">
+                    {% if user.user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                    {% if user.user.is_staff %}
+                        <span class="badge bg-primary">Staff</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Staff</span>
+                    {% endif %}
+                    {% if user.user.is_superuser %}
+                        <span class="badge bg-warning text-dark">Superuser</span>
+                    {% else %}
+                        <span class="badge bg-light">Not Superuser</span>
+                    {% endif %}
+                </td>                
+                <td class="align-middle">
+                     <a href="{% url 'edit-user' user.branch.pk user.user.pk %}" class="btn btn-secondary">Edit User</a>
+                     <a href="{% url 'delete-user' user.user.pk %}" class="btn btn-danger">Delete User</a>
+                </td>
+            </tr><!-- Log on to codeastro.com for more projects -->
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <div class="align-middle">
+        {% if users.has_other_pages %}
+
+            {% if users.has_previous %}
+                <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ users.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            {% for num in users.paginator.page_range %}
+                {% if users.number == num %}
+                    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if users.has_next %}
+                <a class="btn btn-outline-info mb-4" href="?page={{ users.next_page_number }}">Next</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ users.paginator.num_pages }}">Last</a>
+            {% endif %}
+
+        {% endif %}
+    </div><!-- Log on to codeastro.com for more projects -->
+
+</div>
+
+{% endblock content %}

@@ -6,6 +6,8 @@ from django.views.generic import (
 )
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from .models import Stock
 from .forms import StockForm
 from django_filters.views import FilterView
@@ -16,9 +18,13 @@ from django.apps import apps
 
 class StockListView(FilterView):
     filterset_class = StockFilter
-    queryset = Stock.objects.filter(is_deleted=False)
     template_name = 'inventory.html'
     paginate_by = 10
+
+    def get_queryset(self):
+        # Assuming you have a way to get the branch associated with the user
+        user_branch = self.request.user.profile.branch
+        return Stock.objects.filter(is_deleted=False, branch=user_branch)
 
 
 class StockCreateView(SuccessMessageMixin, CreateView):                                 # createview class to add new stock, mixin used to display message
@@ -47,12 +53,22 @@ class StockUpdateView(SuccessMessageMixin, UpdateView):                         
     success_url = '/inventory'                                                          # redirects to 'inventory' page in the url after submitting the form
     success_message = "Stock has been updated successfully"                             # displays message when form is submitted
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
         context["title"] = 'Edit Stock'
         context["savebtn"] = 'Update'
         context["delbtn"] = 'Delete'
         return context
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        print("Form is valid. Stock updated.")
+        return response
 
 
 class StockDeleteView(View):                                                            # view class to delete stock
@@ -74,4 +90,4 @@ class StockDeleteView(View):                                                    
             stock.delete()                                             
             messages.success(request, self.success_message)
             return redirect('inventory')
-    
+        

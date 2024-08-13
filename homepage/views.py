@@ -1,13 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import View, TemplateView, ListView, CreateView, UpdateView
+from django.urls import reverse_lazy, reverse
+from django.http import HttpResponseRedirect
+from django.views.generic import View, TemplateView, ListView, CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from django.contrib.auth.models import User
+from .models import UserProfile
 
 from inventory.models import Stock
 from transactions.models import SaleBill, PurchaseBill, SaleItem, PurchaseItem
 
 from .models import Company, Branch
-from .forms import BranchForm
+from .forms import BranchForm, UserCreationWithProfileForm
 
 import datetime
 from django.utils import timezone
@@ -83,7 +89,7 @@ class AboutView(TemplateView):
 
 class BranchListView(ListView):
     model = Branch
-    template_name = "branch/branch_list.html"
+    template_name = "branches/branch_list.html"
     queryset = Branch.objects.all()
     paginate_by = 10
 
@@ -94,7 +100,7 @@ class BranchCreateView(SuccessMessageMixin, CreateView):
     form_class = BranchForm
     success_url = '/branches'
     success_message = "Branch has been created successfully."
-    template_name = "branch/edit_branch.html"
+    template_name = "branches/edit_branch.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -114,7 +120,7 @@ class BranchUpdateView(SuccessMessageMixin, UpdateView):
     form_class = BranchForm
     success_url = '/branches'
     success_message = "Branch details has been updated successfully"
-    template_name = "branch/edit_branch.html"
+    template_name = "branches/edit_branch.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -126,7 +132,7 @@ class BranchUpdateView(SuccessMessageMixin, UpdateView):
 
 # used to delete a supplier
 class BranchDeleteView(View):
-    template_name = "branch/delete_branch.html"
+    template_name = "branches/delete_branch.html"
     success_message = "Branch has been deleted successfully."
 
     def get(self, request, pk):
@@ -138,3 +144,79 @@ class BranchDeleteView(View):
         branch.delete()                                               
         messages.success(request, self.success_message)
         return redirect('branch-list')
+    
+
+class BranchView(View):
+    def get(self, request, name):
+        branchobj = get_object_or_404(Branch, name=name)
+        user_list = UserProfile.objects.filter(branch=branchobj)
+        page = request.GET.get('page', 1)
+        paginator = Paginator(user_list, 10)
+        try:
+            users = paginator.page(page)
+        except PageNotAnInteger:
+            users = paginator.page(1)
+        except EmptyPage:
+            users = paginator.page(paginator.num_pages)
+        context = {
+            'branch'  : branchobj,
+            'users'     : users,
+        }
+        return render(request, 'branches/branch.html', context)
+    
+
+class UserCreateView(CreateView):
+    form_class = UserCreationWithProfileForm
+    template_name = 'users/add_user.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        branch = get_object_or_404(Branch, id=self.kwargs['branch_id'])
+        kwargs['branch'] = branch
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        print("Form is invalid.")
+        print(form.errors)  
+        return super().form_invalid(form)
+        
+    
+class UserUpdateView(UpdateView):
+    model = User
+    form_class = UserCreationWithProfileForm
+    template_name = 'users/add_user.html'
+    success_url = '/branches'
+    success_message = "User details has been updated successfully."
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if 'branch_id' in self.kwargs:
+            branch = get_object_or_404(Branch, id=self.kwargs['branch_id'])
+        else:
+            user = self.get_object()
+            branch = user.profile.branch
+        kwargs['branch'] = branch
+        return kwargs
+
+    
+class UserDeleteView(View):
+    template_name = "users/delete_user.html"
+    success_message = "User has been deleted successfully"
+
+    def get(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        return render(request, self.template_name, {'object' : user})
+
+    def post(self, request, pk):  
+        user = get_object_or_404(User, pk=pk)
+        branch = user.profile.branch
+        print(branch)
+        user.delete()                                               
+        messages.success(request, self.success_message)
+        return redirect('branch-list')
+
+

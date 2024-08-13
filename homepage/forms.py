@@ -1,6 +1,8 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User, Permission
 
-from .models import Company, Branch
+from .models import Company, Branch, UserProfile
 
 class CompanyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):                                                     
@@ -43,7 +45,6 @@ class BranchForm(forms.ModelForm):
         instance = super().save(commit=False)
         if not instance.company_id:
             user_branch = self.request.user.profile.branch
-            print(user_branch)
             instance.company = user_branch.company
         if commit:
             instance.save()
@@ -55,3 +56,46 @@ class BranchForm(forms.ModelForm):
         widgets = {
             'established_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+class UserCreationWithProfileForm(UserCreationForm):
+    branch = forms.ModelChoiceField(queryset=Branch.objects.all(), required=True)
+
+    def __init__(self, *args, **kwargs):  
+        branch = kwargs.pop('branch', None)
+        super().__init__(*args, **kwargs)
+        if branch:
+            self.fields['branch'].queryset = Branch.objects.filter(id=branch.id)
+
+        is_staff = forms.BooleanField(required=False, label="Staff Status")
+        is_superuser = forms.BooleanField(required=False, label="Superuser Status")
+        is_active = forms.BooleanField(required=False, initial=True, label="Active Status")
+
+        self.fields['branch'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['username'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['password1'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['password2'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['is_active'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_staff'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_superuser'].widget.attrs.update({'class': 'form-check-input'})
+
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2', 'branch','is_staff', 'is_superuser', 'is_active']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.is_staff = self.cleaned_data['is_staff']
+        user.is_superuser = self.cleaned_data['is_superuser']
+        user.is_active = self.cleaned_data['is_active']
+        if commit:
+            user.save()
+            # Update or create the profile with the selected branch
+            UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'branch': self.cleaned_data['branch']}
+            )
+        return user

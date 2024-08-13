@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Company(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
     country = models.CharField(max_length=50)
@@ -24,7 +24,7 @@ class Company(models.Model):
 
 class Branch(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branches')
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
     city = models.CharField(max_length=100)
