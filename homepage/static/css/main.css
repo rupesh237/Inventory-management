@@ -64,6 +64,10 @@ label {
   color: rgb(58, 58, 58); /* Change active item color */
 }
 
+.highlight {
+  background-color: #607d8b; /* Yellow background for highlighting */
+  font-weight: bold;
+}
 
 p {
   color: rgb(49, 49, 49); /* For About */

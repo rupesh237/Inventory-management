@@ -36,7 +36,7 @@
         
         <thead class="thead-dark align-middle">
             <tr>
-                <th width="30%">Employee Name</th>
+                <th width="20%">Employee Name</th>
                 <th>Email</th>
                 <th>Address</th>
                 <th>Position</th>
@@ -51,7 +51,7 @@
             {% for employee in object_list %}
                 <tr>
                     <td class="align-middle">
-                        <p>{{ employee.first_name }} {{ employee.last_name }}</p>
+                        <p><a href="{% url 'employee-profile' employee.pk %}">{{ employee.first_name }} {{ employee.last_name }}</a></p>
                     </td>
                     <td class="align-middle">{{ employee.email }}</td>
                     <td class="align-middle">{{ employee.address }}</td>

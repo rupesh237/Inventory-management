@@ -3,6 +3,8 @@ from django.apps import apps
 
 from django.contrib.auth.models import User
 
+from homepage.models import Branch
+
 
 # Create your models here.
 class Employee(models.Model):
@@ -17,11 +19,13 @@ class Employee(models.Model):
     position = models.CharField(max_length=100)
     salary = models.DecimalField(max_digits=10, decimal_places=2)
 
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='employeebranch', null=True)
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
 class Payroll(models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.DO_NOTHING)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     period_start = models.DateField()
     period_end = models.DateField()
     paid_date = models.DateField()
@@ -32,6 +36,8 @@ class Payroll(models.Model):
     net_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     prepared_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
+
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='payrollbranch', null=True)
 
     def __str__(self):
         return f"Payroll for {self.employee.first_name} {self.employee.last_name} - {self.period_start} to {self.period_end}"
@@ -50,6 +56,7 @@ class Payroll(models.Model):
                 'prepared_by': self.prepared_by,
                 'total': self.net_salary,
                 'date': self.created_at,
+                'branch': self.branch,
             }
         )
         if not created:
@@ -59,6 +66,7 @@ class Payroll(models.Model):
             payment.prepared_by = self.prepared_by
             payment.total = self.net_salary
             payment.date = self.paid_date
+            payment.branch = self.branch
             payment.save()
 
     def save(self, *args, **kwargs):

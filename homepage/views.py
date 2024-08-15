@@ -28,11 +28,12 @@ class HomeView(View):
         sale_data = []
         today = timezone.now()
         six_months_ago = today - datetime.timedelta(days=30*6)
+        branch = self.request.user.profile.branch
 
         # Data for purchase-graph
         purchase_bills = PurchaseBill.objects.filter(time__gte=six_months_ago, time__lte=today)
         for bill in purchase_bills:
-            purchase_items = PurchaseItem.objects.filter(billno=bill.billno)
+            purchase_items = PurchaseItem.objects.filter(billno=bill.billno, branch=branch)
             for item in purchase_items:
                 stock_name = item.stock.name
                 found = False
@@ -51,7 +52,7 @@ class HomeView(View):
         # Data for sales-graph
         sale_bills = SaleBill.objects.filter(time__gte=six_months_ago, time__lte=today)
         for bill in sale_bills:
-            sale_items = SaleItem.objects.filter(billno=bill.billno)
+            sale_items = SaleItem.objects.filter(billno=bill.billno, branch=branch)
             for item in sale_items:
                 stock_name = item.stock.name
                 found = False
@@ -66,13 +67,17 @@ class HomeView(View):
                         'quantity': item.quantity,
                         'totalprice': item.totalprice
                     })
-        
-        stockqueryset = Stock.objects.filter(is_deleted=False).order_by('-quantity')
+
+        stockqueryset = Stock.objects.filter(branch=branch, is_deleted=False).order_by('-quantity')
         for item in stockqueryset:
             labels.append(item.name)
             data.append(item.quantity)
-        sales = SaleBill.objects.order_by('-time')[:3]
-        purchases = PurchaseBill.objects.order_by('-time')[:3]
+
+        # Get the latest 3 sales for the specific branch
+        sales = SaleBill.objects.filter(salebillno__branch=branch).order_by('-time')[:3]
+
+        # Get the latest 3 purchases for the specific branch
+        purchases = PurchaseBill.objects.filter(purchasebillno__branch=branch).order_by('-time')[:3]
 
         context = {
             'labels'    : labels,
@@ -90,7 +95,7 @@ class AboutView(TemplateView):
 class BranchListView(ListView):
     model = Branch
     template_name = "branches/branch_list.html"
-    queryset = Branch.objects.all()
+    queryset = Branch.objects.all().order_by('id')
     paginate_by = 10
 
 
@@ -141,7 +146,11 @@ class BranchDeleteView(View):
 
     def post(self, request, pk):  
         branch = get_object_or_404(Branch, pk=pk)
-        branch.delete()                                               
+        users = User.objects.filter(profile__branch=branch)
+        # Delete each user and their associated profile
+        for user in users:
+            user.delete() 
+        branch.delete()                                              
         messages.success(request, self.success_message)
         return redirect('branch-list')
     
@@ -149,7 +158,7 @@ class BranchDeleteView(View):
 class BranchView(View):
     def get(self, request, name):
         branchobj = get_object_or_404(Branch, name=name)
-        user_list = UserProfile.objects.filter(branch=branchobj)
+        user_list = UserProfile.objects.filter(branch=branchobj).order_by('-user_id')
         page = request.GET.get('page', 1)
         paginator = Paginator(user_list, 10)
         try:
@@ -165,8 +174,10 @@ class BranchView(View):
         return render(request, 'branches/branch.html', context)
     
 
-class UserCreateView(CreateView):
+class UserCreateView(SuccessMessageMixin, CreateView):
     form_class = UserCreationWithProfileForm
+    success_url = '/branches'
+    success_message = "User has been created successfully."
     template_name = 'users/add_user.html'
 
     def get_form_kwargs(self):
@@ -183,14 +194,34 @@ class UserCreateView(CreateView):
         print("Form is invalid.")
         print(form.errors)  
         return super().form_invalid(form)
+    
+    def get_success_url(self):
+        branch = self.object.profile.branch  # assuming the User has a related profile with a branch
+        return reverse('branch_profile', kwargs={'name': branch.name})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = 'New User'
+        context["savebtn"] = 'Add User'
+        return context
         
     
-class UserUpdateView(UpdateView):
+class UserUpdateView(SuccessMessageMixin, UpdateView):
     model = User
     form_class = UserCreationWithProfileForm
     template_name = 'users/add_user.html'
     success_url = '/branches'
     success_message = "User details has been updated successfully."
+
+    def get_success_url(self):
+        branch = self.object.profile.branch  # assuming the User has a related profile with a branch
+        return reverse('branch_profile', kwargs={'name': branch.name})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = 'Edit User'
+        context["savebtn"] = 'Save Changes'
+        return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -214,9 +245,12 @@ class UserDeleteView(View):
     def post(self, request, pk):  
         user = get_object_or_404(User, pk=pk)
         branch = user.profile.branch
-        print(branch)
         user.delete()                                               
         messages.success(request, self.success_message)
         return redirect('branch-list')
+    
+    def get_success_url(self):
+        branch = self.object.profile.branch  # assuming the User has a related profile with a branch
+        return reverse('branch_profile', kwargs={'name': branch.name})
 
 

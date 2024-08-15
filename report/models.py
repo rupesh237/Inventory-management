@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 
 from transactions.models import SaleBillDetails, PurchaseBillDetails
 from finance.models import Payroll
+from homepage.models import Branch
 
 from django.apps import apps
 
@@ -40,6 +41,7 @@ class Payment(models.Model):
 
     purchasebill = models.ForeignKey(PurchaseBillDetails, on_delete=models.CASCADE, blank=True, null=True)
     payroll = models.ForeignKey(Payroll, on_delete=models.CASCADE, null=True, blank=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='branchpayment', null=True)
 
     def clean(self):
         # Custom validation to ensure remarks are provided if type is 'Other'
@@ -70,6 +72,7 @@ class Receipt(models.Model):
     date = models.DateTimeField(blank=True, null=True)
 
     salebill = models.ForeignKey(SaleBillDetails, on_delete=models.CASCADE, blank=True, null=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='branchreceipt', null=True)
 
     def clean(self):
         # Custom validation to ensure remarks are provided if type is 'Other'

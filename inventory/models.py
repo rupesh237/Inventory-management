@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.contrib.auth.models import User
 
 import random
@@ -22,8 +23,8 @@ class Category(models.Model):
 class Stock(models.Model):
     id = models.AutoField(primary_key=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
-    name = models.CharField(max_length=30, unique=True)
-    placed_at = models.CharField(max_length=60, unique=True, null=True)
+    name = models.CharField(max_length=30)
+    placed_at = models.CharField(max_length=60, null=True)
     price = models.FloatField(default=0.0)
     quantity = models.IntegerField(default=1)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
@@ -37,6 +38,12 @@ class Stock(models.Model):
          ('pc', 'PIECE'),
     )
     unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='pc')
+
+    constraints = [
+        UniqueConstraint(fields=['name', 'branch'], name='unique_name_per_branch'),
+        UniqueConstraint(fields=['placed_at', 'branch'], name='unique_placed_at_per_branch')
+        ]
+
 
     def __str__(self):
 	    return self.name
@@ -83,5 +90,25 @@ def create_barcodes_for_all_stocks():
 
     def  __str__(self):
         return self.product_code
+    
+
+class StockTransfer(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('received', 'Received'),
+        ('canceled', 'Canceled'),
+    )
+
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+    from_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='transfers_out')
+    to_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='transfers_in')
+    quantity = models.IntegerField()
+    transferred_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    transfer_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+
+
+    def __str__(self):
+        return f"Transfer {self.quantity} of {self.stock.name} from {self.from_branch.name} to {self.to_branch.name}"
     
 

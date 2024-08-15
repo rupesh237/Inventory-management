@@ -5,7 +5,8 @@ from report.models import Receipt, ReceiptTypeChoice, ReceiptBill, Payment, Paym
 
 
 class EmployeeForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):                                                     # used to set css classes to the various fields
+    def __init__(self, *args, **kwargs):   
+        self.request = kwargs.pop('request', None)                                 
         super().__init__(*args, **kwargs)
         self.fields['first_name'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
         self.fields['last_name'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
@@ -17,15 +18,47 @@ class EmployeeForm(forms.ModelForm):
         self.fields['position'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['salary'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '10', 'pattern' : '[0-9]{10}'})
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.branch_id:
+            user_branch = self.request.user.profile.branch
+            instance.branch = user_branch
+        if commit:
+            instance.save()
+        return instance
+
     class Meta:
         model = Employee
-        fields = "__all__"
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'address', 'date_of_birth', 'date_of_joining', 'position', 'salary']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
             'date_of_joining': forms.DateInput(attrs={'type': 'date'}),
         }
 
 class PayrollForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):   
+        self.request = kwargs.pop('request', None)                                 
+        super().__init__(*args, **kwargs)
+        branch = self.request.user.profile.branch
+        self.fields['employee'].queryset = Employee.objects.filter(branch=branch)
+        self.fields['employee'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
+        self.fields['period_start'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
+        self.fields['period_end'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['basic_salary'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['allowances'].widget.attrs.update({'class': 'dateinput form-control'})
+        self.fields['bonuses'].widget.attrs.update({'class': 'dateinput form-control'})
+        self.fields['deductions'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['paid_date'].widget.attrs.update({'class': 'textinput form-control'})
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.branch_id:
+            user_branch = self.request.user.profile.branch
+            instance.branch = user_branch
+        if commit:
+            instance.save()
+        return instance
+
     class Meta:
         model = Payroll
         fields = ['employee', 'period_start', 'period_end', 'basic_salary', 'allowances', 'bonuses', 'deductions', 'paid_date']
@@ -36,7 +69,8 @@ class PayrollForm(forms.ModelForm):
         }
 
 class ReceiptForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):                                                     # used to set css classes to the various fields
+    def __init__(self, *args, **kwargs):     
+        self.request = kwargs.pop('request', None)                                                   
         super().__init__(*args, **kwargs)
         self.fields['paid_by'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['vat_no'].widget.attrs.update({'class': 'textinput form-control', 'maxlength': '9', 'pattern' : '[0-9]{9}', 'title' : 'VAT NO Format Required'})
@@ -47,6 +81,15 @@ class ReceiptForm(forms.ModelForm):
         self.fields['due_amount'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['type'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
         self.fields['remarks'].widget.attrs.update({'class': 'textinput form-control'})
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.branch_id:
+            user_branch = self.request.user.profile.branch
+            instance.branch = user_branch
+        if commit:
+            instance.save()
+        return instance
 
     class Meta:
         model = Receipt
@@ -67,7 +110,8 @@ class ReceiptForm(forms.ModelForm):
         return cleaned_data
 
 class PaymentForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):                                                     # used to set css classes to the various fields
+    def __init__(self, *args, **kwargs):  
+        self.request = kwargs.pop('request', None)                     
         super().__init__(*args, **kwargs)
         self.fields['paid_to'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['description'].widget.attrs.update({'class': 'textinput form-control'})
@@ -76,6 +120,15 @@ class PaymentForm(forms.ModelForm):
         self.fields['due_amount'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['type'].widget.attrs.update({'class': 'textinput form-control', 'required': 'true'})
         self.fields['remarks'].widget.attrs.update({'class': 'textinput form-control'})
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.branch_id:
+            user_branch = self.request.user.profile.branch
+            instance.branch = user_branch
+        if commit:
+            instance.save()
+        return instance
 
     class Meta:
         model = Payment

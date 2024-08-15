@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from inventory.models import Stock
+from homepage.models import Branch
 
 from django.apps import apps
 
@@ -42,6 +43,7 @@ class PurchaseBill(models.Model):
 class PurchaseItem(models.Model):
     billno = models.ForeignKey(PurchaseBill, on_delete = models.CASCADE, related_name='purchasebillno')
     stock = models.ForeignKey(Stock, on_delete = models.CASCADE, related_name='purchaseitem')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField(default=1)
     perprice = models.IntegerField(default=1)
     totalprice = models.IntegerField(default=1)
@@ -70,7 +72,17 @@ class PurchaseBillDetails(models.Model):
     paid_amount = models.FloatField(default=0.0)
     due_amount = models.FloatField(default=0.0)
 
+    def get_total_amount_with_taxes(self):
+        total = float(self.billno.get_total_price())
+        if not self.discount_amount:
+            self.discount_amount = (float(self.discount_percentage) * total)/100
+        self.total = total + self.cgst - self.discount_amount - self.tds
+        self.due_amount = self.total - self.paid_amount
+
     def make_payment_report(self):
+        purchase_item = self.billno.purchasebillno.first()  # or use .get() if it's guaranteed to be one item
+        branch = purchase_item.branch if purchase_item else None
+        
         Payment = apps.get_model('report', 'Payment')
         payment, created = Payment.objects.get_or_create(
             purchasebill=self,
@@ -82,6 +94,7 @@ class PurchaseBillDetails(models.Model):
                 'paid_amount': self.paid_amount,
                 'due_amount': self.due_amount,
                 'date': self.billno.time,
+                'branch': branch,
             }
         )
         if not created:
@@ -93,6 +106,7 @@ class PurchaseBillDetails(models.Model):
             payment.paid_amount = self.paid_amount
             payment.due_amount = self.due_amount
             payment.date = self.billno.time
+            payment.branch = branch
             payment.save()
         
     def save(self, *args, **kwargs):
@@ -137,6 +151,7 @@ class SaleBill(models.Model):
 class SaleItem(models.Model):
     billno = models.ForeignKey(SaleBill, on_delete = models.CASCADE, related_name='salebillno')
     stock = models.ForeignKey(Stock, on_delete = models.CASCADE, related_name='saleitem')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField(default=1)
     perprice = models.IntegerField(default=1)
     totalprice = models.IntegerField(default=1)
@@ -170,8 +185,12 @@ class SaleBillDetails(models.Model):
         if not self.discount_amount:
             self.discount_amount = (float(self.discount_percentage) * total)/100
         self.total = total + self.cgst - self.discount_amount - self.tds
+        self.due_amount = self.total - self.paid_amount
 
     def make_receipt_report(self):
+        sale_item = self.billno.salebillno.first()  # or use .get() if it's guaranteed to be one item
+        branch = sale_item.branch if sale_item else None
+
         Receipt = apps.get_model('report', 'Receipt')
         receipt, created = Receipt.objects.get_or_create(
             salebill=self,
@@ -183,6 +202,7 @@ class SaleBillDetails(models.Model):
                 'paid_amount': self.paid_amount,
                 'due_amount': self.due_amount,
                 'date': self.billno.time,
+                'branch': branch,
             }
         )
         if not created:
@@ -194,6 +214,7 @@ class SaleBillDetails(models.Model):
             receipt.paid_amount = self.paid_amount
             receipt.due_amount = self.due_amount
             receipt.date = self.billno.time
+            receipt.branch = branch
             receipt.save()
 
     def save(self, *args, **kwargs):

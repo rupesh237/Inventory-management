@@ -27,8 +27,10 @@ class SelectSupplierForm(forms.ModelForm):
 # form used to render a single stock item form
 class PurchaseItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None) 
         super().__init__(*args, **kwargs)
-        self.fields['stock'].queryset = Stock.objects.filter(is_deleted=False)
+        branch = self.request.user.profile.branch
+        self.fields['stock'].queryset = Stock.objects.filter(branch=branch, is_deleted=False)
         self.fields['stock'].widget.attrs.update({'class': 'textinput form-control setprice stock', 'required': 'true'})
         self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '1', 'required': 'true'})
         self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '1', 'required': 'true'})
@@ -105,8 +107,10 @@ class SaleForm(forms.ModelForm):
 # form used to render a single stock item form
 class SaleItemForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None) 
         super().__init__(*args, **kwargs)
-        self.fields['stock'].queryset = Stock.objects.filter(is_deleted=False)
+        branch = self.request.user.profile.branch
+        self.fields['stock'].queryset = Stock.objects.filter(branch=branch, is_deleted=False)
         self.fields['stock'].widget.attrs.update({'class': 'textinput form-control setprice stock', 'required': 'true'})
         self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control setprice quantity', 'min': '1', 'required': 'true'})
         self.fields['perprice'].widget.attrs.update({'class': 'textinput form-control setprice price', 'min': '1', 'required': 'true'})

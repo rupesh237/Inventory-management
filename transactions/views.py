@@ -44,7 +44,7 @@ from pyzbar.pyzbar import decode
 class SupplierListView(ListView):
     model = Supplier
     template_name = "suppliers/suppliers_list.html"
-    queryset = Supplier.objects.filter(is_deleted=False)
+    queryset = Supplier.objects.filter(is_deleted=False).order_by('id')
     paginate_by = 10
 
 
@@ -53,7 +53,7 @@ class SupplierCreateView(SuccessMessageMixin, CreateView):
     model = Supplier
     form_class = SupplierForm
     success_url = '/transactions/suppliers'
-    success_message = "Supplier has been created successfully"
+    success_message = "Supplier has been created successfully."
     template_name = "suppliers/edit_supplier.html"
     
     def get_context_data(self, **kwargs):
@@ -62,13 +62,12 @@ class SupplierCreateView(SuccessMessageMixin, CreateView):
         context["savebtn"] = 'Add Supplier'
         return context     
 
-
 # used to update a supplier's info
 class SupplierUpdateView(SuccessMessageMixin, UpdateView):
     model = Supplier
     form_class = SupplierForm
     success_url = '/transactions/suppliers'
-    success_message = "Supplier details has been updated successfully"
+    success_message = "Supplier details has been updated successfully."
     template_name = "suppliers/edit_supplier.html"
     
     def get_context_data(self, **kwargs):
@@ -82,7 +81,7 @@ class SupplierUpdateView(SuccessMessageMixin, UpdateView):
 # used to delete a supplier
 class SupplierDeleteView(View):
     template_name = "suppliers/delete_supplier.html"
-    success_message = "Supplier has been deleted successfully"
+    success_message = "Supplier has been deleted successfully."
 
     def get(self, request, pk):
         supplier = get_object_or_404(Supplier, pk=pk)
@@ -90,8 +89,7 @@ class SupplierDeleteView(View):
 
     def post(self, request, pk):  
         supplier = get_object_or_404(Supplier, pk=pk)
-        supplier.is_deleted = True
-        supplier.save()                                               
+        supplier.delete()                                               
         messages.success(request, self.success_message)
         return redirect('suppliers-list')
 
@@ -101,8 +99,9 @@ class SupplierView(View):
     def get(self, request, name):
         overall_total_amount = 0
         overall_total_due_amount = 0
+        branch = self.request.user.profile.branch
         supplierobj = get_object_or_404(Supplier, name=name)
-        bill_list = PurchaseBill.objects.filter(supplier=supplierobj)
+        bill_list = PurchaseBill.objects.filter(purchasebillno__branch=branch, supplier=supplierobj)
         for bill in bill_list:
            # Calculate the total amount and due amount for each bill
             purchase_details = PurchaseBillDetails.objects.filter(billno=bill).aggregate(
@@ -138,6 +137,12 @@ class PurchaseView(ListView):
     ordering = ['-time']
     paginate_by = 10
 
+    def get_queryset(self):
+        branch = self.request.user.profile.branch
+        # Filter the PurchaseBill queryset by branch and order by time
+        queryset = PurchaseBill.objects.filter(purchasebillno__branch=branch).order_by('-time')
+        return queryset
+
 
 # used to select the supplier
 class SelectSupplierView(View):
@@ -162,19 +167,21 @@ class PurchaseCreateView(View):
     template_name = 'purchases/new_purchase.html'
 
     def get(self, request, pk):
-        formset = PurchaseItemFormset(request.GET or None) # renders an empty formset
+        # PurchaseItemForm(request=request)
+        formset = PurchaseItemFormset(form_kwargs={'request': request}) # renders an empty formset
         supplierobj = get_object_or_404(Supplier, pk=pk)  # gets the supplier object
-        current_date = datetime.date(datetime.now())                  
+        current_date = datetime.date(datetime.now())
+        branch = self.request.user.profile.branch                  
         context = {
             'formset'   : formset,
             'supplier'  : supplierobj,
             'current_date' : current_date,
-            'stocks': Stock.objects.filter(is_deleted=False),
+            'stocks': Stock.objects.filter(branch=branch, is_deleted=False),
         }                                                                       # sends the supplier and formset as context
         return render(request, self.template_name, context)
 
     def post(self, request, pk):
-        formset = PurchaseItemFormset(request.POST)                             # recieves a post method for the formset
+        formset = PurchaseItemFormset(request.POST, form_kwargs={'request': request})                             # recieves a post method for the formset
         supplierobj = get_object_or_404(Supplier, pk=pk)                     # gets the supplier object
         if formset.is_valid():
             # saves bill
@@ -205,11 +212,16 @@ class PurchaseCreateView(View):
                 billitem.totalprice = billitem.perprice * billitem.quantity
                 # updates quantity in stock db
                 stock.quantity += billitem.quantity                              # updates quantity
+                # setting branch
+                branch = self.request.user.profile.branch
+                print(branch)
+                billitem.branch = branch
                 # saves bill item and stock
                 stock.save()
                 billitem.save()
             #create bill details object
             billdetailsobj = PurchaseBillDetails(billno=billobj, discount_percentage=purchase_discount)
+            billdetailsobj.get_total_amount_with_taxes()
             billdetailsobj.save()
             messages.success(request, "Purchased items have been registered successfully")
             return redirect('purchase-bill', billno=billobj.billno)
@@ -219,6 +231,11 @@ class PurchaseCreateView(View):
             'supplier'  : supplierobj
         }
         return render(request, self.template_name, context)
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
 
 # used to delete a bill object
@@ -230,8 +247,9 @@ class PurchaseDeleteView(SuccessMessageMixin, DeleteView):
     def delete(self, *args, **kwargs):
         self.object = self.get_object()
         items = PurchaseItem.objects.filter(billno=self.object.billno)
+        branch = self.request.user.profile.branch
         for item in items:
-            stock = get_object_or_404(Stock, name=item.stock.name)
+            stock = get_object_or_404(Stock, name=item.stock.name, branch=branch)
             if stock.is_deleted == False:
                 stock.quantity -= item.quantity
                 stock.save()
@@ -249,13 +267,20 @@ class SaleView(ListView):
     ordering = ['-time']
     paginate_by = 10
 
+    def get_queryset(self):
+        branch = self.request.user.profile.branch
+        # Filter the SaleBill queryset by branch and order by time
+        queryset = SaleBill.objects.filter(salebillno__branch=branch).order_by('-time')
+        return queryset
+
 
 # used to generate a bill object and save items
 def get_customer_details(request):
     name = request.GET.get('name', None)
+    branch = request.user.profile.branch
     if name:
         try:
-            sale_bill = SaleBill.objects.filter(name=name).first()
+            sale_bill = SaleBill.objects.filter(purchasebillno__branch=branch, name=name).first()
             data = {
                 'phone': sale_bill.phone,
                 'email': sale_bill.email,
@@ -283,8 +308,10 @@ class SaleCreateView(View):
 
     def get(self, request):
         form = SaleForm()
-        formset = SaleItemFormset()                          # renders an empty formset
-        stocks = Stock.objects.filter(is_deleted=False)
+        formset = SaleItemFormset(form_kwargs={'request': request})                          # renders an empty formset
+        branch=self.request.user.profile.branch
+        stocks = Stock.objects.filter(branch=branch, is_deleted=False)
+        print(stocks)
         sale_bills = SaleBill.objects.all()
         context = {
             'form'      : form,
@@ -296,7 +323,7 @@ class SaleCreateView(View):
 
     def post(self, request):
         form = SaleForm(request.POST)
-        formset = SaleItemFormset(request.POST)                               # recieves a post method for the formset
+        formset = SaleItemFormset(request.POST, form_kwargs={'request': request})                               # recieves a post method for the formset
         if form.is_valid() and formset.is_valid():
             sale_discount = request.POST['sale-discount']
             # saves bill
@@ -312,7 +339,11 @@ class SaleCreateView(View):
                 # calculates the total price
                 billitem.totalprice = billitem.perprice * billitem.quantity
                 # updates quantity in stock db
-                stock.quantity -= billitem.quantity   
+                stock.quantity -= billitem.quantity  
+                # setting branch
+                branch = self.request.user.profile.branch
+                print(branch)
+                billitem.branch = branch 
                 # saves bill item and stock
                 stock.save()
                 billitem.save()
@@ -343,6 +374,11 @@ class SaleCreateView(View):
             'sale_bills': sale_bills,
         }
         return render(request, self.template_name, context)
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
 
 
 # used to delete a bill object
@@ -354,8 +390,9 @@ class SaleDeleteView(SuccessMessageMixin, DeleteView):
     def delete(self, *args, **kwargs):
         self.object = self.get_object()
         items = SaleItem.objects.filter(billno=self.object.billno)
+        branch = self.request.user.profile.branch
         for item in items:
-            stock = get_object_or_404(Stock, name=item.stock.name)
+            stock = get_object_or_404(Stock, name=item.stock.name, branch=branch)
             if stock.is_deleted == False:
                 stock.quantity += item.quantity
                 stock.save()

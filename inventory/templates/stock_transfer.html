@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+
+{% block title %} Transfer Stock {% endblock title %}
+
+
+{% block content %}
+
+    <div style="color:#575757; font-style: bold; font-size: 3rem; border-bottom: 1px solid white;">Transfer Stock</div> 
+    
+    <br><!-- Log on to codeastro.com for more projects -->
+    
+    <form method="post">
+    
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {% if form.quantity.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.name.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+        {% endif %}
+
+
+        <div class="form-group">
+            {{ form.stock.errors }}
+            <label for="{{ form.stock.id_for_label }}">Stock:</label>
+            {{ form.stock }}
+        </div> 
+        <div class="row form-row">
+            <div class="form-group col-md-6">
+                {{ form.from_branch.errors }}
+                <label for="{{ form.from_branch.id_for_label }}">From:</label>
+                {{ form.from_branch }}
+            </div>
+            <div class="form-group col-md-6">
+                {{ form.to_branch.errors }}
+                <label for="{{ form.to_branch.id_for_label }}">To:</label>
+                {{ form.to_branch }}
+            </div>
+        </div>
+        <div class="form-group ">
+            {{ form.quantity.errors }}
+            <label for="{{ form.quantity.id_for_label }}">Quantity:</label>
+            {{ form.quantity }}
+        </div>
+        <br>
+
+        <div class="align-middle">
+            <button type="submit" class="btn btn-success">Transfer</button>
+            <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+        
+    </form><!-- Log on to codeastro.com for more projects -->
+
+{% endblock content %}

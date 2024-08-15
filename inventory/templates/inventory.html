@@ -10,8 +10,9 @@
     <!-- Log on to codeastro.com for more projects -->
     <div class="row" style="color: #4e4e4e; font-style: bold; font-size: 3rem; ">
         <div class="col-md-8">Inventory List</div>
-        <div class="col-md-4">               
-            <div style="float:right;"> <a class="btn btn-success" href="{% url 'new-stock' %}">Add New Stock</a> </div>
+        <div class="col-md-4" style="text-align: right;">
+            <a class="btn btn-secondary" href="{% url 'transfer-stock' %}">Transfer Stock</a>
+            <a class="btn btn-success" href="{% url 'new-stock' %}">Add New Stock</a>
         </div>
     </div>
     
@@ -70,6 +71,7 @@
         </tbody>
 
     </table>  
+    <p><a href="{% url 'stock-transfer-list' %}">Pending Stocks</a></p>
 
     <div class="align-middle">
         {% if is_paginated %}
@@ -100,8 +102,9 @@
         <tbody></tbody>   
     </table><!-- Log on to codeastro.com for more projects -->
 
-    <br><br><br><br><br><br><br><br>
-    <div style="color: #575757; font-style: bold; font-size: 1.5rem; text-align: center;">The records are empty. Please try adding some.</div>
+    <br><br><br>
+    <div style="color: #575757; font-style: bold; font-size: 1.5rem; text-align: center;">The records are empty. Please try adding some.</div><br><br><br>
+    <p><a href="{% url 'stock-transfer-list' %}">Pending Stocks</a></p>
 
 {% endif %}
 

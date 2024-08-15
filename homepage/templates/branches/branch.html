@@ -47,8 +47,8 @@
                 <th width="10%">User Name</th>
                 <th width="15%">Email</th>
                 <th width="15%">Status</th>
-                <th width="30%">Actions</th>
-            </tr><!-- Log on to codeastro.com for more projects -->
+                <th width="10%">Actions</th>
+            </tr>
         </thead>
       
         <tbody>
@@ -74,8 +74,8 @@
                     {% endif %}
                 </td>                
                 <td class="align-middle">
-                     <a href="{% url 'edit-user' user.branch.pk user.user.pk %}" class="btn btn-secondary">Edit User</a>
-                     <a href="{% url 'delete-user' user.user.pk %}" class="btn btn-danger">Delete User</a>
+                     <a href="{% url 'edit-user' user.branch.pk user.user.pk %}" class="btn btn-secondary"><i class="bi bi-pencil-fill"></i></a>
+                     <a href="{% url 'delete-user' user.user.pk %}" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
                 </td>
             </tr><!-- Log on to codeastro.com for more projects -->
             {% endfor %}

@@ -71,6 +71,8 @@ class UserCreationWithProfileForm(UserCreationForm):
         is_active = forms.BooleanField(required=False, initial=True, label="Active Status")
 
         self.fields['branch'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['branch'].initial = branch
+        self.fields['branch'].disabled = True 
         self.fields['first_name'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['last_name'].widget.attrs.update({'class': 'textinput form-control'})
         self.fields['username'].widget.attrs.update({'class': 'textinput form-control'})

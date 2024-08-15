@@ -1,5 +1,7 @@
 from django import forms
-from .models import Stock, Barcode
+from .models import Stock, Barcode, StockTransfer
+
+from homepage.models import Branch
 
 from django.core.exceptions import ValidationError
 
@@ -49,3 +51,23 @@ class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
         fields = ['category', 'name', 'placed_at', 'price', 'quantity', 'unit']
+
+class StockTransferForm(forms.ModelForm):
+    class Meta:
+        model = StockTransfer
+        fields = ['stock', 'from_branch', 'to_branch', 'quantity']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        
+        self.fields['stock'].queryset = Stock.objects.filter(branch=user.profile.branch)
+        self.fields['stock'].widget.attrs.update({'class': 'textinput form-control'})
+        
+        self.fields['from_branch'].initial = user.profile.branch
+        self.fields['from_branch'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['from_branch'].disabled = True 
+
+        self.fields['to_branch'].queryset = Branch.objects.exclude(id=user.profile.branch.id)
+        self.fields['to_branch'].widget.attrs.update({'class': 'textinput form-control'})
+        self.fields['quantity'].widget.attrs.update({'class': 'textinput form-control'})

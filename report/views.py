@@ -28,9 +28,10 @@ class ReportHomeView(View):
         sale_data = []
         today = timezone.now()
         a_months_ago = today - datetime.timedelta(days=30*1)
+        branch = self.request.user.profile.branch
 
         # Data for purchase-graph
-        purchase_bills = PurchaseBill.objects.filter(time__gte=a_months_ago, time__lte=today)
+        purchase_bills = PurchaseBill.objects.filter(time__gte=a_months_ago, time__lte=today, purchasebillno__branch=branch)
         for bill in purchase_bills:
             purchase_details = PurchaseBillDetails.objects.filter(billno=bill.billno)
             for item in purchase_details:
@@ -55,7 +56,7 @@ class ReportHomeView(View):
 
 
         # Data for sales-graph
-        sale_bills = SaleBill.objects.filter(time__gte=a_months_ago, time__lte=today)
+        sale_bills = SaleBill.objects.filter(time__gte=a_months_ago, time__lte=today, salebillno__branch=branch)
         for bill in sale_bills:
             sale_details = SaleBillDetails.objects.filter(billno=bill.billno)
             for item in sale_details:
@@ -78,8 +79,10 @@ class ReportHomeView(View):
         total_sale = sum(sale['total'] for sale in sale_data)
         sale_due = sum(sale['due'] for sale in sale_data)
 
-        payments = Payment.objects.order_by('-date')[:4]
-        receipts = Receipt.objects.order_by('-date')[:4]
+        # Get the latest 3 payments for the specific branch
+        payments = Payment.objects.filter(branch=branch).order_by('-date')[:4]
+        # Get the latest 3 receipts for the specific branch
+        receipts = Receipt.objects.filter(branch=branch).order_by('-date')[:4]
 
         context = {
             'purchase_data': purchase_data,
@@ -97,11 +100,12 @@ class ReportHomeView(View):
 
 # MIS Report pdf download
 def mis_report_function(request, date):
+    branch = request.user.profile.branch
     selected_date = timezone.make_aware(datetime.datetime.combine(date, datetime.time.min))
     a_months_ago = selected_date - datetime.timedelta(days=30)
     receipts_list = []
 
-    receipts_list = Receipt.objects.filter(date__gte=a_months_ago, date__lte=selected_date)
+    receipts_list = Receipt.objects.filter(branch=branch, date__gte=a_months_ago, date__lte=selected_date)
     receipt_types = [
         "SALE", "SERVICE PROVIDED", "DUE", "OTHER", 
     ]
@@ -117,7 +121,7 @@ def mis_report_function(request, date):
     total_due_receipt = sum(dict_receipt_dues.values())
 
 
-    payments_list = Payment.objects.filter(date__gte=a_months_ago, date__lte=selected_date)
+    payments_list = Payment.objects.filter(branch=branch, date__gte=a_months_ago, date__lte=selected_date)
     payment_types = [
         "SALARY", "PURCHASE", "EXPENSE", "FOOD", 
         "TRAVEL", "DUE", "OTHER", 
@@ -239,6 +243,7 @@ def mis_report_pdf_download(request, date):
 
 # DAY BOOK 
 def day_book_function(request, date):
+    branch = request.user.profile.branch
     selected_date = timezone.make_aware(datetime.datetime.combine(date, datetime.time.min))
     # Convert the date to a timezone-aware datetime object for the start of the day
     start_of_day = timezone.make_aware(datetime.datetime.combine(date, datetime.time.min))
@@ -248,7 +253,7 @@ def day_book_function(request, date):
     receipts_list = []
 
     # Filter receipts within the start and end of the selected date
-    receipts_list = Receipt.objects.filter(date__range=(start_of_day, end_of_day))
+    receipts_list = Receipt.objects.filter(branch=branch, date__range=(start_of_day, end_of_day))
     receipt_types = [
         "SALE", "SERVICE PROVIDED", "DUE", "OTHER", 
     ]
@@ -264,7 +269,7 @@ def day_book_function(request, date):
     total_due_receipt = sum(dict_receipt_dues.values())
 
 
-    payments_list = Payment.objects.filter(date__range=(start_of_day, end_of_day))
+    payments_list = Payment.objects.filter(branch=branch, date__range=(start_of_day, end_of_day))
     payment_types = [
         "SALARY", "PURCHASE", "EXPENSE", "FOOD", 
         "TRAVEL", "DUE", "OTHER", 
@@ -386,11 +391,12 @@ def day_book_pdf_download(request, date):
 
 # Receipt Report
 def receipt_report_function(request, date):
+    branch = request.user.profile.branch
     selected_date = timezone.make_aware(datetime.datetime.combine(date, datetime.time.min))
     a_months_ago = selected_date - datetime.timedelta(days=30)
     receipts_list = []
 
-    receipts_list = Receipt.objects.filter(date__gte=a_months_ago, date__lte=selected_date)
+    receipts_list = Receipt.objects.filter(branch=branch, date__gte=a_months_ago, date__lte=selected_date)
     receipt_types = [
         "SALE", "SERVICE PROVIDED", "DUE", "OTHER", 
     ]
@@ -492,10 +498,11 @@ def receipt_report_pdf_download(request, date):
 
 # Payment Report
 def payment_report_function(request, date):
+    branch = request.user.profile.branch
     selected_date = timezone.make_aware(datetime.datetime.combine(date, datetime.time.min))
     a_months_ago = selected_date - datetime.timedelta(days=30)
     
-    payments_list = Payment.objects.filter(date__gte=a_months_ago, date__lte=selected_date)
+    payments_list = Payment.objects.filter(branch=branch, date__gte=a_months_ago, date__lte=selected_date)
     payment_types = [
         "SALARY", "PURCHASE", "EXPENSE", "FOOD", 
         "TRAVEL", "DUE", "OTHER", 

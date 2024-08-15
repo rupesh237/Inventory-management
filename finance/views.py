@@ -8,6 +8,8 @@ from django.views.generic import (
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from django.utils import timezone
 import tzlocal
 from django.urls import reverse
@@ -25,8 +27,11 @@ from .filters import PayrollFilter
 class EmployeeListView(ListView):
     model = Employee
     template_name = "employee/employee_list.html"
-    queryset = Employee.objects.all()
     paginate_by = 10
+
+    def get_queryset(self):
+        user_branch = self.request.user.profile.branch
+        return Employee.objects.filter(branch=user_branch)
 
 
 class EmployeeCreateView(SuccessMessageMixin, CreateView):                                 # createview class to add new stock, mixin used to display message
@@ -40,7 +45,14 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):                      
         context = super().get_context_data(**kwargs)
         context["title"] = 'New Employee'
         context["savebtn"] = 'Add Employee'
-        return context   
+        return context
+
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
+   
     
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -71,17 +83,44 @@ class EmployeeDeleteView(View):
     success_message = "Employee has been deleted successfully"                             # displays message when form is submitted
     
     def get(self, request, pk):
-        employee = get_object_or_404(Employee, pk=pk)
+        branch = self.request.user.profile.branch
+        employee = get_object_or_404(Employee, pk=pk, branch=branch)
         return render(request, self.template_name, {'object' : employee})
 
     def post(self, request, pk):  
-        employee = get_object_or_404(Employee, pk=pk)
+        branch = self.request.user.profile.branch
+        employee = get_object_or_404(Employee, pk=pk, branch=branch)
         employee.delete()                                             
         messages.success(request, self.success_message)
         return redirect('employee') 
+    
+# used to view a supplier's profile
+class EmployeeView(View):
+    def get(self, request, pk):
+        branch = self.request.user.profile.branch
+        overall_total_amount = 0
+        employeeobj = get_object_or_404(Employee, pk=pk, branch=branch)
+        payroll_list = Payroll.objects.filter(employee=employeeobj)
+        for payroll in payroll_list:
+           # Calculate the total amount for each payroll
+            overall_total_amount += payroll.net_salary
+        page = request.GET.get('page', 1)
+        paginator = Paginator(payroll_list, 10)
+        try:
+            payrolls = paginator.page(page)
+        except PageNotAnInteger:
+            payrolls = paginator.page(1)
+        except EmptyPage:
+            payrolls = paginator.page(paginator.num_pages)
+        context = {
+            'employee'  : employeeobj,
+            'payrolls'     : payrolls,
+            'overall_total_amount': overall_total_amount,
+        }
+        return render(request, 'employee/employee.html', context)
 
 
-class PayrollCreateView(CreateView):
+class PayrollCreateView(SuccessMessageMixin, CreateView):
     model = Payroll
     form_class = PayrollForm
     template_name = 'payroll/create_payroll.html'
@@ -93,6 +132,12 @@ class PayrollCreateView(CreateView):
         context["title"] = 'New Pyroll'
         context["savebtn"] = 'Add Payroll'
         return context  
+    
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
 
     def form_valid(self, form):
         form.instance.calculate_net_salary()          # Ensure net salary is calculated
@@ -102,16 +147,24 @@ class PayrollCreateView(CreateView):
 
 class PayrollListView(FilterView):
     filterset_class = PayrollFilter
-    queryset = Payroll.objects.filter()
     template_name = 'payroll/payroll_list.html'
     paginate_by = 10
+
+    def get_queryset(self):
+        # Get the branch of the current user
+        user_branch = self.request.user.profile.branch
+        # Filter the Payroll objects by the user's branch
+        queryset = Payroll.objects.filter(branch=user_branch)
+        # Apply the filter class to the queryset
+        filtered_queryset = self.filterset_class(self.request.GET, queryset=queryset).qs
+        return filtered_queryset
 
 class PayrollUpdateView(SuccessMessageMixin, UpdateView):                                 
     model = Payroll                                                                       
     form_class = PayrollForm                                                              
     template_name = "payroll/edit_payroll.html"                                                 
     success_url = '/finance/payroll'                   
-    success_message = "Payroll details has been updated successfully"                             # displays message when form is submitted
+    success_message = "Payroll details has been updated successfully."                             # displays message when form is submitted
 
     def get_context_data(self, **kwargs):                                               # used to send additional context
         context = super().get_context_data(**kwargs)
@@ -119,6 +172,12 @@ class PayrollUpdateView(SuccessMessageMixin, UpdateView):
         context["savebtn"] = 'Update'
         context["delbtn"] = 'Delete'
         return context
+    
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
     
     def form_valid(self, form):
         form.instance.calculate_net_salary()          # Ensure net salary is calculated
@@ -132,11 +191,13 @@ class PayrollDeleteView(View):                                                  
     success_message = "Payroll has been deleted successfully"                             # displays message when form is submitted
     
     def get(self, request, pk):
-        payroll = get_object_or_404(Payroll, pk=pk)
+        branch = self.request.user.profile.branch
+        payroll = get_object_or_404(Payroll, pk=pk, branch=branch)
         return render(request, self.template_name, {'object' : payroll})
 
     def post(self, request, pk):  
-        payroll = get_object_or_404(Payroll, pk=pk)
+        branch = self.request.user.profile.branch
+        payroll = get_object_or_404(Payroll, pk=pk, branch=branch)
         payroll.delete()                                             
         messages.success(request, self.success_message)
         return redirect('payroll') 
@@ -144,8 +205,11 @@ class PayrollDeleteView(View):                                                  
 class ReceiptListView(ListView):
     model = Receipt
     template_name = "receipt/receipt_list.html"
-    queryset = Receipt.objects.all()
     paginate_by = 10
+
+    def get_queryset(self):
+        user_branch = self.request.user.profile.branch
+        return Receipt.objects.filter(branch=user_branch)
 
 
 class ReceiptCreateView(SuccessMessageMixin, CreateView):                                 # createview class to add new stock, mixin used to display message
@@ -160,6 +224,12 @@ class ReceiptCreateView(SuccessMessageMixin, CreateView):                       
         context["title"] = 'New Receipt'
         context["savebtn"] = 'Add Receipt'
         return context   
+    
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
     
     def form_valid(self, form):
         form.instance.prepared_by = self.request.user
@@ -203,11 +273,13 @@ class ReceiptDeleteView(View):                                                  
     success_message = "Receipt has been deleted successfully"                             # displays message when form is submitted
     
     def get(self, request, pk):
-        receipt = get_object_or_404(Receipt, pk=pk)
+        branch = self.request.user.profile.branch
+        receipt = get_object_or_404(Receipt, pk=pk, branch=branch)
         return render(request, self.template_name, {'object' : receipt})
 
     def post(self, request, pk):  
-        receipt = get_object_or_404(Receipt, pk=pk)
+        branch = self.request.user.profile.branch
+        receipt = get_object_or_404(Receipt, pk=pk, branch=branch)
         receipt.delete()                                             
         messages.success(request, self.success_message)
         return redirect('receipt') 
@@ -215,8 +287,11 @@ class ReceiptDeleteView(View):                                                  
 class PaymentListView(ListView):
     model = Payment
     template_name = "payment/payment_list.html"
-    queryset = Payment.objects.all()
     paginate_by = 10
+
+    def get_queryset(self):
+        user_branch = self.request.user.profile.branch
+        return Payment.objects.filter(branch=user_branch)
 
 
 class PaymentCreateView(SuccessMessageMixin, CreateView):                                 # createview class to add new stock, mixin used to display message
@@ -231,6 +306,12 @@ class PaymentCreateView(SuccessMessageMixin, CreateView):                       
         context["title"] = 'New Payment'
         context["savebtn"] = 'Add Payment'
         return context   
+    
+    def get_form_kwargs(self):
+        """Pass the request object to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request  # Add the request to the form kwargs
+        return kwargs  
     
     def form_valid(self, form):
         form.instance.prepared_by = self.request.user
@@ -266,11 +347,13 @@ class PaymentDeleteView(View):                                                  
     success_message = "Payment has been deleted successfully"                             # displays message when form is submitted
     
     def get(self, request, pk):
-        payment = get_object_or_404(Payment, pk=pk)
+        branch = self.request.user.profile.branch
+        payment = get_object_or_404(Payment, pk=pk, branch=branch)
         return render(request, self.template_name, {'object' : payment})
 
     def post(self, request, pk):  
-        payment = get_object_or_404(Payment, pk=pk)
+        branch = self.request.user.profile.branch
+        payment = get_object_or_404(Payment, pk=pk, branch=branch)
         payment.delete()                                             
         messages.success(request, self.success_message)
         return redirect('payment') 

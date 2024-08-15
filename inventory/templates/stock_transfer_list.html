@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% load widget_tweaks %}
+
+
+{% block title %} Stock Transfer List {% endblock title %}
+
+
+{% block content %}
+    <!-- Log on to codeastro.com for more projects -->
+    <div class="row" style="color: #4e4e4e; font-style: bold; font-size: 3rem; ">
+        <div class="col-md-8">Stock Transfer List</div>
+    </div>
+    
+    <div style="border-bottom: 1px solid white;"></div>
+    
+    <br>
+
+    <table class="table table-css table-bordered table-hover">
+        <br>
+        
+        <thead class="thead-dark align-middle">
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Stock Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Transferred By</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+                  
+{% if object_list %}
+
+        <tbody>     <!-- Log on to codeastro.com for more projects -->    
+            {% for transfer in object_list %}
+                <tr>
+                    <td class="align-middle {% if transfer.from_branch == request.user.profile.branch %}highlight{% endif %}">
+                        <p>{{ transfer.from_branch }}</p>
+                    </td>
+                    <td class="align-middle {% if transfer.to_branch == request.user.profile.branch %}highlight{% endif %}">
+                        <p>{{ transfer.to_branch }}</p>
+                    </td>
+                    <td class="align-middle">
+                        <p>{{ transfer.stock.name }}</p>
+                    </td>
+                    <td class="align-middle">{{ transfer.stock.category }}</td>
+                    <td class="align-middle">{{ transfer.quantity }}</td>
+                    <td class="align-middle">{{ transfer.transferred_by }}</td>
+                    <td class="align-middle">{{ transfer.status }}</td>
+                    {% if transfer.status == 'pending' %}
+                    <td class="align-middle">
+                        {% if user.profile.branch == transfer.to_branch %}
+                            {% if user.is_superuser %}
+                            <a href="{% url 'update-transfer-status' transfer.pk 'received' %}" class="btn btn-success btn-sm">Received</a>
+                            <a href="{% url 'update-transfer-status' transfer.pk 'cancelled' %}" class="btn btn-danger btn-sm">Cancelled</a>
+                            {% endif %}
+                        {% else %}
+                        <i><b>waiting for approval</b></i>
+                        {% endif %}
+                    </td>  
+                    {% else %}   
+                    <td class="align-middle">
+                        <i><b>processed</b></i>
+                    </td> 
+                    {% endif %}     
+                </tr>
+            {% endfor %}                   
+        </tbody>
+
+    </table>  
+
+    <div class="align-middle">
+        {% if is_paginated %}
+
+            {% if page_obj.has_previous %}
+                <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}<!-- Log on to codeastro.com for more projects -->
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            {% endif %}
+
+        {% endif %}
+    </div>
+
+{% else %}
+
+    <tbody></tbody>   
+    </table><!-- Log on to codeastro.com for more projects -->
+
+    <br><br><br>
+    <div style="color: #575757; font-style: bold; font-size: 1.5rem; text-align: center;">The records are empty. Please try adding some.</div><br><br><br>
+
+{% endif %}
+<a href="{% url 'inventory' %}">Go Back</i></a>
+
+{% endblock content %}

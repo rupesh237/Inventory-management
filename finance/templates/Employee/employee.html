@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+  {{ supplier.name }}'s profile
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="content-section">
+        <div class="media"><!-- Log on to codeastro.com for more projects -->
+            <div class="media-body">
+                <h2 style="color:#575757;" class="account-heading">&nbsp;{{ employee.first_name }} {{ employee.last_name }}</h2>
+                <a href="{% url 'edit-employee' employee.pk %}" class="btn btn-info" style="float: right;">Edit Details</a>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="fal">
+                            <b>Contact &nbsp; &nbsp;&nbsp; :</b> {{ employee.phone_number }} <br>
+                            <b>Email Id &nbsp;&nbsp;&nbsp;&nbsp; :</b> {{ employee.email }} <br>
+                            <b>Date of Birth &nbsp; :</b> {{ employee.date_of_birth }} <br>
+                            <b>Date of Joining &nbsp; :</b> {{ employee.date_of_joining }} <br>
+                            <b>Basic Salary: &nbsp; :</b> {{ employee.salary }} <br>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="fal">
+                            <b>Address:</b> <br> {{ employee.address|linebreaks }}
+                        </p>
+                        <b>Position: &nbsp; :</b> {{ employee.position }} <br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-css table-hover table-bordered">
+        
+        <br>
+        
+        <thead class="thead-dark align-middle">
+            <tr>
+                <th>Paid Date</th>
+                <th>Period</th>
+                <th>Total Salary</th>
+                <th width="10%">Actions</th>
+            </tr><!-- Log on to codeastro.com for more projects -->
+        </thead>
+      
+        <tbody>
+            {% for payroll in payrolls %}
+            <tr>
+                <td class="align-middle"> <p>{{ payroll.paid_date }}</p> </td>   
+                <td class="align-middle">{{ payroll.period_start }} to {{ payroll.period_end }}</td>
+                <td class="align-middle">{{ payroll.net_salary }}</td>
+                <td class="align-middle">
+                    <a href="{% url 'edit-payroll' payroll.pk %}" class="btn btn-info btn-sm"><i class="bi bi-pencil-fill"></i></a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'delete-payroll' payroll.pk %}" class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i></a>
+                    {% endif %}
+                </td>   
+            </tr><!-- Log on to codeastro.com for more projects -->
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <div class="align-middle">
+        {% if payrolls.has_other_pages %}
+
+            {% if payrolls.has_previous %}
+                <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ payrolls.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            {% for num in payrolls.paginator.page_range %}
+                {% if payrolls.number == num %}
+                    <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% elif num > payrolls.number|add:'-3' and num < payrolls.number|add:'3' %}
+                    <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if bills.has_next %}
+                <a class="btn btn-outline-info mb-4" href="?page={{ payrolls.next_page_number }}">Next</a>
+                <a class="btn btn-outline-info mb-4" href="?page={{ payrolls.paginator.num_pages }}">Last</a>
+            {% endif %}
+
+        {% endif %}
+    </div><!-- Log on to codeastro.com for more projects -->
+
+</div>
+
+{% endblock content %}
